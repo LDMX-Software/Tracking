@@ -19,7 +19,7 @@ option(BUILD_EVENT_ONLY "Build the event library." ON)
 if(BUILD_EVENT_ONLY)
 
     # Register all of the classes with the event bus.
-    register_event_object( module_path "Tracking/Event" namespace "ldmx" class "RawSiStripHit" )
+    register_event_object( module_path "Tracking/Event" namespace "tracking::event" class "RawSiStripHit" )
 
     # Get all of the event sources that will be included in this library
     file(GLOB EVENT_SRC_FILES ${PROJECT_SOURCE_DIR}/src/Tracking/Event/*.cxx)
@@ -33,3 +33,9 @@ if(BUILD_EVENT_ONLY)
 
      return()
 endif()
+
+file(GLOB SIM_SRC_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/Tracking/Sim/*.cxx)
+
+setup_library(name Tracking
+              dependencies Framework::Configure Framework::Framework
+              sources ${SIM_SRC_FILES})

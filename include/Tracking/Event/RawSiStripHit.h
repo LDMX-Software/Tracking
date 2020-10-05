@@ -13,7 +13,8 @@
 //----------//
 #include "TObject.h"
 
-namespace ldmx {
+namespace tracking {
+namespace event {
 
 /**
  * Implementation of a raw digitized hit from a silicon strip detector.
@@ -32,11 +33,11 @@ public:
    * Constructor.
    *
    * @param[in] samples The ADC samples composing this hit.  For now, the size
-   *    of a sample is assumed to be 16 bits. 
+   *    of a sample is assumed to be 16 bits.
    * @param[in] time The timestamp of this hit as set by the data acquisition
    *    system.
    */
-  RawSiStripHit(std::vector<short> samples, long time); 
+  RawSiStripHit(std::vector<short> samples, long time);
 
   /**
    * Destructor.
@@ -46,19 +47,18 @@ public:
   virtual ~RawSiStripHit(){};
 
   /**
-   * Clear the vector of samples and set the timestamp to 0. 
+   * Clear the vector of samples and set the timestamp to 0.
    *
-   * This class is needed by ROOT when building the dictionary. 
+   * This class is needed by ROOT when building the dictionary.
    */
-   void Clear(); 
+  void Clear();
 
-   /**
-    * Print the string representation of this object. 
-    *
-    * This class is needed by ROOT when building the dictionary. 
-    */
-   void Print() const { std::cout << this; }
-
+  /**
+   * Print the string representation of this object.
+   *
+   * This class is needed by ROOT when building the dictionary.
+   */
+  void Print() const { std::cout << this; }
 
   /**
    * Get the digitized (ADC) samples composing this hit.
@@ -123,6 +123,7 @@ protected:
   ClassDef(RawSiStripHit, 1);
 
 }; // RawSiStripHit
-} // namespace ldmx
+} // namespace event
+} // namespace tracking
 
 #endif // TRACKING_EVENT_RAWSISTRIPHIT_H_

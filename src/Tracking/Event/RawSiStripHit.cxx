@@ -1,7 +1,8 @@
 
 #include "Tracking/Event/RawSiStripHit.h"
 
-namespace ldmx {
+namespace tracking {
+namespace event {
 
 RawSiStripHit::RawSiStripHit(std::vector<short> samples, long time)
     : samples_(samples), time_(time) {}
@@ -21,4 +22,5 @@ std::ostream &operator<<(std::ostream &output, const RawSiStripHit &hit) {
   return output;
 }
 
-} // namespace ldmx
+} // namespace event
+} // namespace tracking
