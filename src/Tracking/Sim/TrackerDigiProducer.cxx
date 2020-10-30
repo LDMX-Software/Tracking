@@ -20,7 +20,7 @@ void TrackerDigiProducer::onProcessStart() {
 
   detector_ = &detector();
   // Get the world detector element
-  dd4hep::DetElement world{detector_.world()};
+  dd4hep::DetElement world{detector_->world()};
   std::cout << "World volume name: " << world.name() << std::endl;
 }
 
