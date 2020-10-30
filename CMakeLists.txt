@@ -12,6 +12,8 @@ project(Ecal VERSION 2.1.0
 # Search for ROOT and add all targets.
 find_package(ROOT CONFIG REQUIRED)
 
+setup_dd4hep_target()
+
 # Allow building of event specific classes only.  The most common use case is 
 # needing to build the event classes to allow building of the event bus and ROOT
 # dictionary prior building the rest of the modules in a package. 
@@ -37,5 +39,7 @@ endif()
 file(GLOB SIM_SRC_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/Tracking/Sim/*.cxx)
 
 setup_library(name Tracking
-              dependencies Framework::Configure Framework::Framework
+              dependencies Framework::Configure Framework::Framework DD4hep::DDCore
               sources ${SIM_SRC_FILES})
+
+setup_python(package_name ${PYTHON_PACKAGE_NAME}/Tracking)
