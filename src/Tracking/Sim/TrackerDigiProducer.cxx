@@ -1,5 +1,7 @@
 
 #include "Tracking/Sim/TrackerDigiProducer.h"
+#include "Acts/Geometry/CuboidVolumeBuilder.hpp"
+
 
 /*~~~~~~~~~~~~~~~~*/
 /*   C++ StdLib   */
@@ -22,6 +24,7 @@ void TrackerDigiProducer::onProcessStart() {
   // Get the world detector element
   dd4hep::DetElement world{detector_->world()};
   std::cout << "World volume name: " << world.name() << std::endl;
+  Acts::CuboidVolumeBuilder cvb;
 }
 
 void TrackerDigiProducer::configure(ldmx::Parameters &parameters) {}

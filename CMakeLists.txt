@@ -12,6 +12,11 @@ project(Ecal VERSION 2.1.0
 # Search for ROOT and add all targets.
 find_package(ROOT CONFIG REQUIRED)
 
+# Search for Acts
+find_package(Acts CONFIG COMPONENTS Core REQUIRED)
+
+find_package(Eigen3 CONFIG REQUIRED)
+
 setup_dd4hep_target()
 
 # Allow building of event specific classes only.  The most common use case is 
@@ -29,17 +34,22 @@ if(BUILD_EVENT_ONLY)
     # Generate the files needed to build the event classes.
     setup_library(module Tracking
                   name Event
-                  dependencies ROOT::Core
+                  dependencies ROOT::Core ActsCore
                   sources ${EVENT_SRC_FILES}
                   register_target)
 
      return()
 endif()
 
+include_directories(${include_paths})
+
 file(GLOB SIM_SRC_FILES CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/src/Tracking/Sim/*.cxx)
 
 setup_library(name Tracking
-              dependencies Framework::Configure Framework::Framework DD4hep::DDCore
+              dependencies Framework::Configure 
+                           Framework::Framework 
+                           DD4hep::DDCore 
+                           ActsCore
               sources ${SIM_SRC_FILES})
 
 setup_python(package_name ${PYTHON_PACKAGE_NAME}/Tracking)
