@@ -13,7 +13,8 @@ project(Ecal VERSION 2.1.0
 find_package(ROOT CONFIG REQUIRED)
 
 # Search for Acts
-find_package(Acts CONFIG COMPONENTS Core REQUIRED)
+#find_package(Acts CONFIG COMPONENTS Core REQUIRED)
+find_package(Acts CONFIG REQUIRED)
 
 find_package(Eigen3 CONFIG REQUIRED)
 
@@ -34,7 +35,9 @@ if(BUILD_EVENT_ONLY)
     # Generate the files needed to build the event classes.
     setup_library(module Tracking
                   name Event
-                  dependencies ROOT::Core ActsCore
+                  dependencies ROOT::Core 
+                  ActsCore
+#                  ActsPluginDD4hep
                   sources ${EVENT_SRC_FILES}
                   register_target)
 
@@ -50,6 +53,7 @@ setup_library(name Tracking
                            Framework::Framework 
                            DD4hep::DDCore 
                            ActsCore
+                           ActsPluginDD4hep
               sources ${SIM_SRC_FILES})
 
 setup_python(package_name ${PYTHON_PACKAGE_NAME}/Tracking)
