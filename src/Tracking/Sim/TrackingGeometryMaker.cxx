@@ -41,10 +41,14 @@ void TrackingGeometryMaker::produce(ldmx::Event &event) {}
 void TrackingGeometryMaker::collectSubDetectors_dd4hep(dd4hep::DetElement& detElement,
                                                        std::vector<dd4hep::DetElement>& subdetectors) {
     const dd4hep::DetElement::Children& children = detElement.children();
+    
+    std::cout<<"Collecting from "<<detElement.name()<<std::endl;
+        
+    
     for (auto& child : children) {
         dd4hep::DetElement childDetElement = child.second;
-        std::cout<<"Child:: "<<childDetElement.name()<<std::endl;
-        std::cout<<childDetElement.type()<<std::endl;
+        std::cout<<"Child Name:: "<<childDetElement.name()<<std::endl;
+        std::cout<<"Child Type:: "<<childDetElement.type()<<std::endl;
         
         //Check if an Acts extension is attached to the det Element (not necessary)
         Acts::ActsExtension* detExtension = nullptr;
@@ -57,6 +61,15 @@ void TrackingGeometryMaker::collectSubDetectors_dd4hep(dd4hep::DetElement& detEl
             continue;
         }
         
+        //Add the chile if the detExtension is the TaggerTracker, the RecoilTracker or the Target(?)
+        if ((detExtension!=nullptr) && 
+            (detExtension->hasType("TaggerTracker","detector") ||  
+             detExtension->hasType("RecoilTracker","detector"))) {
+            subdetectors.push_back(childDetElement);
+        }
+        
+        //recursive
+        collectSubDetectors_dd4hep(childDetElement,subdetectors);
     }//children loop
 }
     
