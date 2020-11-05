@@ -35,6 +35,11 @@ void TrackingGeometryMaker::configure(ldmx::Parameters &parameters) {}
 void TrackingGeometryMaker::produce(ldmx::Event &event) {}
     
     
+    // **** //
+    std::shared_ptr<const Acts::CylinderVolumeHelper> cuboidVolumeHelper_dd4hep(Logging::Level loggingLevel) {
+        
+    }
+
     
     //#####################//
     

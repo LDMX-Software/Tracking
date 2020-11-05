@@ -12,6 +12,13 @@
 /*~~~~~~~~~~~~*/
 #include "DD4hep/Detector.h"
 
+
+/*~~~~~~~~~~~~*/
+/*    ACTS    */
+/*~~~~~~~~~~~~*/
+
+#include "Acts/Geometry/CuboidVolumeHelper.hpp"
+
 namespace tracking {
 namespace sim {
 
