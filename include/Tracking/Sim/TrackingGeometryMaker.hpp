@@ -12,12 +12,44 @@
 /*~~~~~~~~~~~~*/
 #include "DD4hep/Detector.h"
 
+/*~~~~~~~~~~*/
+/*   ROOT   */
+/*~~~~~~~~~~*/
+#include "TGeoMatrix.h"
 
 /*~~~~~~~~~~~~*/
 /*    ACTS    */
 /*~~~~~~~~~~~~*/
 
-#include "Acts/Geometry/CuboidVolumeHelper.hpp"
+#include "Acts/Utilities/Logger.hpp"
+#include "Acts/Plugins/DD4hep/ActsExtension.hpp"
+#include "Acts/Plugins/DD4hep/DD4hepLayerBuilder.hpp"
+#include "Acts/Plugins/DD4hep/DD4hepDetectorElement.hpp"
+#include "Acts/Geometry/CuboidVolumeBuilder.hpp"
+#include "Acts/Utilities/Units.hpp"
+#include "Acts/Utilities/Definitions.hpp"
+#include "Acts/Geometry/GeometryContext.hpp"
+#include "Acts/Geometry/TrackingVolume.hpp"
+#include "Acts/Geometry/TrackingGeometryBuilder.hpp"
+#include <Acts/Geometry/TrackingGeometry.hpp>
+
+
+#include "Acts/Material/HomogeneousSurfaceMaterial.hpp"
+#include "Acts/Material/HomogeneousVolumeMaterial.hpp"
+#include "Acts/Material/Material.hpp"
+#include "Acts/Surfaces/RectangleBounds.hpp"
+
+
+///Visualization
+#include <Acts/Visualization/ObjVisualization3D.hpp>
+#include <Acts/Visualization/GeometryView3D.hpp>
+#include <Acts/Visualization/ViewConfig.hpp>
+
+
+//This should be changed in the new version
+//#include "Acts/Material/MaterialProperties.hpp"
+#include "Acts/Material/MaterialSlab.hpp"
+#include "Acts/Material/HomogeneousSurfaceMaterial.hpp"
 
 namespace tracking {
 namespace sim {
@@ -56,13 +88,35 @@ public:
    */
   void produce(ldmx::Event &event);
 
+    Acts::CuboidVolumeBuilder::VolumeConfig  volumeBuilder_dd4hep(dd4hep::DetElement& subdetector,Acts::Logging::Level logLevel);
+    
   void collectSubDetectors_dd4hep(dd4hep::DetElement& detElement,
                                   std::vector<dd4hep::DetElement>& subdetectors);
-  
+  void collectSensors_dd4hep(dd4hep::DetElement& detElement,
+                             std::vector<dd4hep::DetElement>& sensors);
+
+void collectModules_dd4hep(dd4hep::DetElement& detElement,
+                                 std::vector<dd4hep::DetElement>& modules);
+   
+
+//This should go and we should use ACTS methods. But they are private for the moment.
+void resolveSensitive(
+const dd4hep::DetElement& detElement,
+    std::vector<std::shared_ptr<const Acts::Surface>>& surfaces,bool force) const;
+
+std::shared_ptr<const Acts::Surface>
+createSensitiveSurface(
+    const dd4hep::DetElement& detElement) const;
+
+Acts::Transform3D convertTransform(const TGeoMatrix* tGeoTrans) const;
+
 private:
   /// The detector
   dd4hep::Detector* detector_{nullptr};
-}; // TrackerDigiProducer
+  Acts::GeometryContext m_gctx;
+  int dumpobj_ {0};
+}; // TrackingGeometryMaker
+    
 
 } // namespace sim
 } // namespace tracking

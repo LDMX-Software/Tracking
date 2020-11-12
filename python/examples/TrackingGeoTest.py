@@ -7,10 +7,16 @@ p.libraries.append("libTracking.so")
 p.detector = '/nfs/slac/g/ldmx/users/pbutti/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml'
 
 from LDMX.Tracking import tracking_geo
+from LDMX.Tracking import tracker_seeding
 
 geo  = tracking_geo.TrackingGeometryMaker()
+geo.dumpobj = 0
 
-p.sequence = [geo]
+
+seed = tracker_seeding.SeedFinderProcessor()
+
+
+p.sequence = [geo,seed]
 
 print(p.sequence)
 
@@ -22,4 +28,4 @@ p.outputFiles = ['tracker_test.root']
 
 p.termLogLevel=0
 
-p.maxEvents = 1
+p.maxEvents = 10

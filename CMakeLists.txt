@@ -35,7 +35,7 @@ if(BUILD_EVENT_ONLY)
     # Generate the files needed to build the event classes.
     setup_library(module Tracking
                   name Event
-                  dependencies ROOT::Core 
+                  dependencies ROOT::Core ROOT::Geom
                   ActsCore
 #                  ActsPluginDD4hep
                   sources ${EVENT_SRC_FILES}
