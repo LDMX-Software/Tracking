@@ -27,7 +27,15 @@
 /*~~~~~~~~~~~~*/
 #include "Acts/Seeding/SpacePointGrid.hpp"
 #include "Acts/Seeding/Seedfinder.hpp"
+#include "Acts/Seeding/SeedFilter.hpp"
+#include "Acts/Seeding/Seed.hpp"
+#include "Acts/Seeding/BinFinder.hpp"
+#include "Acts/Seeding/BinnedSPGroup.hpp"
 
+
+//ROOT forward declarations
+class TH2D;
+class TFile;
 
 namespace tracking {
 namespace sim {
@@ -51,6 +59,12 @@ public:
    */
   void onProcessStart() final override;
 
+    /**
+     *
+     */
+    void onProcessEnd() final override;
+       
+
   /**
    * Configure the processor using the given user specified parameters.
    *
@@ -67,13 +81,24 @@ public:
   void produce(ldmx::Event &event);
 
 
-    std::shared_ptr<ldmx::LdmxSpacePoint> convertSimHitToLdmxSpacePoint(const ldmx::SimTrackerHit& hit);
+    //std::shared_ptr<ldmx::LdmxSpacePoint> convertSimHitToLdmxSpacePoint(const ldmx::SimTrackerHit& hit);
+    ldmx::LdmxSpacePoint* convertSimHitToLdmxSpacePoint(const ldmx::SimTrackerHit& hit);
 
 private:
     Acts::SpacePointGridConfig m_gridConf;
     Acts::SeedfinderConfig<ldmx::LdmxSpacePoint> m_config;
-    //std::default_random_engine* m_def_random_engine;
-    std::shared_ptr<std::normal_distribution<double> > distN;  
+    Acts::SeedFilterConfig m_seedFilter_cfg;
+    
+    std::shared_ptr<Acts::Seedfinder<ldmx::LdmxSpacePoint> > m_seedFinder;
+    std::shared_ptr<Acts::BinFinder<ldmx::LdmxSpacePoint> > bottomBinFinder;
+    std::shared_ptr<Acts::BinFinder<ldmx::LdmxSpacePoint> > topBinFinder;  
+
+    std::mt19937 m_randomEngine;
+    std::normal_distribution<double> distN;  
+
+    
+    std::shared_ptr<TH2F>  h_SimHit_edep_vs_mom;
+    std::shared_ptr<TFile> m_outFile;
     
     
 }; // SeedFinderProcessor

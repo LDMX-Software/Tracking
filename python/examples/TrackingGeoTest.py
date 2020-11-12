@@ -28,4 +28,4 @@ p.outputFiles = ['tracker_test.root']
 
 p.termLogLevel=0
 
-p.maxEvents = 10
+p.maxEvents = 100000
