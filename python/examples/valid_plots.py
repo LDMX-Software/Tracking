@@ -1,36 +1,22 @@
-<<<<<<< Updated upstream
-import os
-from LDMX.Framework import ldmxcfg
-
-p = ldmxcfg.Process("tracking")
-
-p.libraries.append("libTracking.so")
-
-#from LDMX.Tracking.python.validate import tracking_validate
-
-#bugger = tracking_validate.validation_processor()
-#bugger.debug = False
-
-#p.sequence = [bugger]
-
-#print(p.sequence)
-=======
 import os,math
 from LDMX.Framework import ldmxcfg
 
+
+sw_path = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX'
 
 p = ldmxcfg.Process("TrackerReco")
 #p = ldmxcfg.Process("tracking")
 
 p.libraries.append("libTracking.so")
 
-p.detector = '/Users/emryspeets/sw/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml'
+p.detector = os.path.join(sw_path,'ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml')
 
 
 from LDMX.Tracking import tracking_validate
 from LDMX.Tracking import tracking_geo
 from LDMX.Tracking import tracking_vtx
 from LDMX.Tracking import tracking_truthseeder
+
 
 #now we do the truthseeder for electrons as done in SingleElectronsReco.py
 ts_ele               = tracking_truthseeder.TruthSeedProcessor()
@@ -40,12 +26,12 @@ ts_ele.pdgIDs        = [11]
 ts_ele.scoring_hits  = "TargetScoringPlaneHits"
 ts_ele.z_min         = 4.4
 ts_ele.track_id      = 1
-#ts_ele.p_cut         = 3970. # In MeV
-ts_ele.p_cut         = 0. # In MeV
+ts_ele.p_cut         = 3970. # In MeV
+# ts_ele.p_cut         = 0. # In MeV
 ts_ele.pz_cut        = 0.
 
 #smearing in u/v directions
-uSmearing = 0.006  #mm
+uSmearing = 0.036  #mm
 vSmearing = 0.1    #mm
 
 
@@ -63,7 +49,7 @@ geo.propagator_step_size = 1.  #mm
 geo.propagator_maxSteps = 2000
 geo.bfield = -1.5  #in T #From looking at the BField map
 geo.const_b_field = False
-geo.bfieldMap_ = "/Users/emryspeets/sw/data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+geo.bfieldMap_ = os.path.join(sw_path, "/data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat")
 #geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BMapConstant_1_5T.dat"
 
 
@@ -97,7 +83,7 @@ geo_tagger.debug = False
 geo_tagger.propagator_step_size = 2.  #mm
 geo_tagger.bfield = -1.5  #in T #From looking at the BField map
 geo_tagger.const_b_field = False
-geo_tagger.bfieldMap_ = "/Users/emryspeets/sw/data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+geo_tagger.bfieldMap_ = os.path.join(sw_path, "data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat")
 #geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BMapConstant_1_5T.dat"
 
 
@@ -133,7 +119,7 @@ bugger.debug = False
 bugger.propagator_step_size = 2.  #mm
 bugger.bfield = -1.5  #in T #From looking at the BField map
 bugger.const_b_field = False
-bugger.bfieldMap_ = "/Users/emryspeets/sw/data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+bugger.bfieldMap_ = os.path.join(sw_path, "data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat")
 
 
 #some quick other stuff
@@ -160,18 +146,10 @@ p.sequence = [bugger]
 
 #p.sequence = [ts_ele, geo, geo_tagger, bugger]#, vtx]
 print(p.sequence)
->>>>>>> Stashed changes
 
 #You need to copy this file to the LDMX_BASE area for the example to work!
 #/nfs/slac/g/ldmx/data/mc20/v12/4.0GeV/v2.2.1-batch8/mc_v12-4GeV-1e-ecal_photonuclear_run1075000_t1600764279.root
 
-<<<<<<< Updated upstream
-p.inputFiles = [os.environ["LDMX_BASE"]+"/data_ldmx/single_e/mc_v12-4GeV-1e-inclusive_run10001_t1636673834.root"]
-p.outputFiles = ["/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/data_ldmx/valid_plots.root"]
-
-p.termLogLevel=0
-
-=======
 p.inputFiles = [os.environ["LDMX_BASE"]+"/data_ldmx/single_e/single_ele_tagger.root"]
 print(p.inputFiles)
 #p.keep = [
@@ -186,8 +164,7 @@ print(p.inputFiles)
 #    ]
 
 
-p.outputFiles = ["/Users/emryspeets/sw/data_ldmx/validation_plots.root"]
+p.outputFiles = [os.path.join(sw_path, "data_ldmx/validation_plots.root")]
 
 p.termLogLevel=0
->>>>>>> Stashed changes
 p.maxEvents = 1000
