@@ -2,9 +2,9 @@
 #include "TFile.h"
 
 
-
+// Ben: commented out the include for Tracking/Reco/Vertexer.h since it was causing error during "make Tracking"
 //likey need to do 
-#include "Tracking/Reco/Vertexer.h"
+// #include "Tracking/Reco/Vertexer.h"
 
 //when i start using acts
 #include "Acts/MagneticField/ConstantBField.hpp"
@@ -36,10 +36,13 @@ void validation_processor::onProcessStart(){
 
   //Emrys to do, make "folders" for each category
 
+  // Ben: change d0 to QoP here (naming doesn't matter here)
+  //      leave d0min/max completely alone
+
   //d0 histograms 
-  h_tagger_d0  = new TH1F("h_tagger_d0","h_tagger_d0",400, d0min, d0max);
-  h_recoil_d0  = new TH1F("h_recoil_d0","h_recoil_d0",400, d0min, d0max);
-  h_delta_d0   = new TH1F("h_delta_d0","h_delta_d0",400, d0min, d0max);
+  h_tagger_qop  = new TH1F("h_tagger_qop","h_tagger_qop",400, d0min, d0max);
+  h_recoil_qop  = new TH1F("h_recoil_qop","h_recoil_qop",400, d0min, d0max);
+  h_delta_qop   = new TH1F("h_delta_qop","h_delta_qop",400, d0min, d0max);
   
   //z0 histograms
 //  h_tagger_z0    = new TH1F("h_tagger_z0","h_tagger_z0",400, z0min, z0max);
@@ -251,11 +254,12 @@ void validation_processor::onProcessEnd() {
   TFile* outfile = new TFile("validation_plots.root","RECREATE");
   outfile->cd();
 
- 
+  // Ben: changed the d0 below to qop
+
   //writing to d0 histos
-  h_tagger_d0->Write();
-  h_recoil_d0->Write();
-  h_delta_d0->Write();
+  h_tagger_qop->Write();
+  h_recoil_qop->Write();
+  h_delta_qop->Write();
 
   //writing to z0 histos
 //  h_tagger_z0->Write();
@@ -314,16 +318,21 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
   double t_p, r_p;
   double t_phi, r_phi;
   double t_theta, r_theta;
+  double t_qop, r_qop;
 //to solve my error I think i need to do something like t_d0 = 
    
-  t_d0 = t_trk.getD0();
-  r_d0 = r_trk.getD0();
+  // t_d0 = t_trk.getD0();
+  // r_d0 = r_trk.getD0();
 
-  
+  // Ben: added the two lines below
+  t_qop = t_trk.getQoP();
+  r_qop = r_trk.getQoP();
+
+  // Ben: changed every instance of d0 to qop in the three uncommented lines below
   //filling d0 histograms
-  h_tagger_d0->Fill(t_d0);
-  h_recoil_d0->Fill(r_d0);
-  h_delta_d0->Fill(t_d0 - r_d0);
+  h_tagger_qop->Fill(t_qop);
+  h_recoil_qop->Fill(r_qop);
+  h_delta_qop->Fill(t_qop - r_qop);
 
   //filling z0 histograms 
 //  h_tagger_z0->Fill(t_trk.getZ0());
