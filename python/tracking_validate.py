@@ -1,9 +1,5 @@
 import os
-<<<<<<< Updated upstream
-from LDMX.Framework import ldmxcfg
-=======
 #from LDMX.Framework import ldmxcfg
->>>>>>> Stashed changes
 from LDMX.Framework.ldmxcfg import Producer
 
 
@@ -21,12 +17,9 @@ class validation_processor(Producer) :
 #class Vertexer(Producer) :
 #    def __init__(self, instance_name = "Vertexer"):
 #        super().__init__(instance_name,'tracking::reco::Vertexer','Tracking')
-<<<<<<< Updated upstream
-=======
 #from LDMX.Framework.ldmxcfg import Producer
 
 #class TrackingGeometryMaker(Producer) :
 
 #  def __init__(self, instance_name = 'TrackingGeometryMaker'):
 #    super().__init__(instance_name, 'tracking::sim::TrackingGeometryMaker', 'Tracking')
->>>>>>> Stashed changes
