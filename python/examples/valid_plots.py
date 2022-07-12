@@ -2,7 +2,7 @@ import os,math
 from LDMX.Framework import ldmxcfg
 
 
-sw_path = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX'
+sw_path = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/'
 
 p = ldmxcfg.Process("TrackerReco")
 #p = ldmxcfg.Process("tracking")
@@ -16,7 +16,6 @@ from LDMX.Tracking import tracking_validate
 from LDMX.Tracking import tracking_geo
 from LDMX.Tracking import tracking_vtx
 from LDMX.Tracking import tracking_truthseeder
-
 
 #now we do the truthseeder for electrons as done in SingleElectronsReco.py
 ts_ele               = tracking_truthseeder.TruthSeedProcessor()
