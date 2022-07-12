@@ -1,12 +1,11 @@
 import os,math
 from LDMX.Framework import ldmxcfg
 
-
 sw_path = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/'
 
 p = ldmxcfg.Process("TrackerReco")
 p.libraries.append("libTracking.so")
-p.detector = '/Users/emryspeets/sw/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml'
+p.detector = os.path.join(sw_path, '/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml')
 
 
 from LDMX.Tracking import tracking_validate
