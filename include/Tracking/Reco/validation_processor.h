@@ -119,11 +119,11 @@ class validation_processor : public framework::Producer {
   
 
   // Comparitive Histograms 
-  TH2F* h_delta_d0_vs_recoil_p;
-  TH2F* h_delta_z0_vs_recoil_p;
+  // TH2F* h_delta_d0_vs_recoil_p;
+  // TH2F* h_delta_z0_vs_recoil_p;
 
-  TH2F* h_td0_vs_rd0;
-  TH2F* h_tz0_vs_rz0;
+  // TH2F* h_td0_vs_rd0;
+  // TH2F* h_tz0_vs_rz0;
 
  
 };
