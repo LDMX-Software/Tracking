@@ -253,11 +253,11 @@ void validation_processor::onProcessEnd() {
   h_delta_theta->Write();
 
   //writing to the comparison histos
-  h_delta_d0_vs_recoil_p->Write();
-  h_delta_z0_vs_recoil_p->Write();
+  // h_delta_d0_vs_recoil_p->Write();
+  // h_delta_z0_vs_recoil_p->Write();
 
-  h_td0_vs_rd0->Write();
-  h_tz0_vs_rz0->Write();
+  // h_td0_vs_rd0->Write();
+  // h_tz0_vs_rz0->Write();
 
 
 
@@ -320,9 +320,9 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
 
 
   //Now we fill the histograms for each parameter
-  
+
   // Ben: changed every instance of d0 to qop in the three uncommented lines below
-  //filling d0 histograms
+  //filling QoP histograms
   h_tagger_qop->Fill(t_qop);
   h_recoil_qop->Fill(r_qop);
   h_delta_qop->Fill(t_qop - r_qop);
@@ -350,12 +350,12 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
   //filling comparison histogram
 
   //differential plots
-  h_delta_d0_vs_recoil_p->Fill(r_p, t_d0 - r_d0);
-  h_delta_z0_vs_recoil_p->Fill(r_p, t_d0 - r_z0);
+  //h_delta_d0_vs_recoil_p->Fill(r_p, t_d0 - r_d0);
+  //h_delta_z0_vs_recoil_p->Fill(r_p, t_d0 - r_z0);
 
   //"beamspot"
-  h_td0_vs_rd0->Fill(r_z0,t_d0);
-  h_tz0_vs_rz0->Fill(r_d0,t_z0);
+  //h_td0_vs_rd0->Fill(r_z0,t_d0);
+  //h_tz0_vs_rz0->Fill(r_d0,t_z0);
 
 
   //"pT"
