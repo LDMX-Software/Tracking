@@ -16,11 +16,6 @@
 
 #include "Acts/Definitions/Units.hpp"
 #include "Acts/Definitions/Common.hpp"
-//// Vertexing
-
-//#include "Acts/Vertexing/FullBilloirVertexFitter.hpp"
-//#include "Acts/Vertexing/HelicalTrackLinearizer.hpp"
-//#include "Acts/Vertexing/Vertex.hpp"
 
 //// Magfield
 
@@ -32,8 +27,6 @@
 
 #include "Acts/Propagator/EigenStepper.hpp"
 #include "Acts/Propagator/Propagator.hpp"
-//#include "Acts/Propagator/Navigator.hpp"
-//#include "Acts/Propagator/StandardAborters.hpp"
 
 //// Geometry
 #include "Acts/Surfaces/PerigeeSurface.hpp"
@@ -79,15 +72,11 @@ class validation_processor : public framework::Producer {
   //Event counter
   int nevents_{0};
   
-  //new histos
-  int nvertices_{0};
-  int nreconstructable_{0};
-
 
   //The interpolated bfield
- std::shared_ptr<InterpolatedMagneticField3> sp_interpolated_bField_;
- std::shared_ptr<Acts::ConstantBField> bField_;
- std::string bfieldMap_;
+  std::shared_ptr<InterpolatedMagneticField3> sp_interpolated_bField_;
+  std::shared_ptr<Acts::ConstantBField> bField_;
+  std::string bfieldMap_;
 
   //Track collection name
   std::string trk_c_name_1{"TaggerTracks"};
@@ -108,9 +97,9 @@ class validation_processor : public framework::Producer {
   TH1F* h_delta_d0; 
 
   //z0 histograms
-//  TH1F* h_tagger_z0;
-//  TH1F* h_recoil_z0;
-//  TH1F* h_delta_z0;
+  TH1F* h_tagger_z0;
+  TH1F* h_recoil_z0;
+  TH1F* h_delta_z0;
 
   //p histograms
   TH1F* h_tagger_p;
@@ -118,22 +107,22 @@ class validation_processor : public framework::Producer {
   TH1F* h_delta_p;
 
   //phi histograms 
-//  TH1F* h_tagger_phi;
-//  TH1F* h_recoil_phi;
-//  TH1F* h_delta_phi;
-
+  TH1F* h_tagger_phi;
+  TH1F* h_recoil_phi;
+  TH1F* h_delta_phi;
 
   //theta histograms
-//  TH1F* h_tagger_theta;
-//  TH1F* h_recoil_theta;
-//  TH1F* h_delta_theta;
+  TH1F* h_tagger_theta;
+  TH1F* h_recoil_theta;
+  TH1F* h_delta_theta;
   
 
   // Comparitive Histograms 
-//  TH2F* h_delta_d0_vs_recoil_p;
-//  TH2F* h_delta_z0_vs_recoil_p;
-//  TH2F* h_td0_vs_rd0;
-//  TH2F* h_tz0_vs_rz0;
+  TH2F* h_delta_d0_vs_recoil_p;
+  TH2F* h_delta_z0_vs_recoil_p;
+
+  TH2F* h_td0_vs_rd0;
+  TH2F* h_tz0_vs_rz0;
 
  
 };
