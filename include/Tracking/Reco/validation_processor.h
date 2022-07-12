@@ -102,10 +102,11 @@ class validation_processor : public framework::Producer {
 
   //Monitoring histograms
   
+  // Ben: changed all instances of d0 to qop in 3 uncommented lines below
   //d0 histograms
-  TH1F* h_tagger_d0;
-  TH1F* h_recoil_d0;
-  TH1F* h_delta_d0; 
+  TH1F* h_tagger_qop;
+  TH1F* h_recoil_qop;
+  TH1F* h_delta_qop; 
 
   //z0 histograms
 //  TH1F* h_tagger_z0;
