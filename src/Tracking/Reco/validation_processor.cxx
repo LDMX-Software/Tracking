@@ -1,12 +1,7 @@
 #include "validation_processor.h"
 #include "TFile.h"
 
-
-
-//likey need to do 
-#include "Tracking/Reco/Vertexer.h"
-
-//when i start using acts
+//for acts stuffs
 #include "Acts/MagneticField/ConstantBField.hpp"
 
 
@@ -42,9 +37,9 @@ void validation_processor::onProcessStart(){
   h_delta_d0   = new TH1F("h_delta_d0","h_delta_d0",400, d0min, d0max);
   
   //z0 histograms
-//  h_tagger_z0    = new TH1F("h_tagger_z0","h_tagger_z0",400, z0min, z0max);
-//  h_recoil_d0  = new TH1F("h_recoil_d0","h_recoil_d0",400, z0min, z0max);
-//  h_delta_d0   = new TH1F("h_delta_d0","h_delta_d0",400, z0min, z0max);
+  h_tagger_z0    = new TH1F("h_tagger_z0","h_tagger_z0",400, z0min, z0max);
+  h_recoil_z0  = new TH1F("h_recoil_z0","h_recoil_z0",400, z0min, z0max);
+  h_delta_z0   = new TH1F("h_delta_z0","h_delta_z0",400, z0min, z0max);
 
   //p histograms  
   h_tagger_p = new TH1F("h_tagger_p","h_tagger_p",200,-1,7);
@@ -52,22 +47,22 @@ void validation_processor::onProcessStart(){
   h_delta_p  = new TH1F("h_delta_p","h_delta_p",200,-1,7);
 
   //phi histograms
-//  h_tagger_phi   = new TH1F("h_tagger_phi","h_tagger_phi",400,-0.2,0.2);
-//  h_recoil_phi   = new TH1F("h_recoil_phi","h_recoil_phi",400,-0.2,0.2);
-//  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.2,0.2);
+  h_tagger_phi   = new TH1F("h_tagger_phi","h_tagger_phi",400,-0.2,0.2);
+  h_recoil_phi   = new TH1F("h_recoil_phi","h_recoil_phi",400,-0.2,0.2);
+  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.2,0.2);
 
   //theta histograms
-//  h_tagger_theta = new TH1F("h_tagger_theta","h_tagger_theta",200,-0.1,0.1);
-//  h_recoil_theta = new TH1F("h_recoil_theta","h_recoil_theta",200,-0.1,0.1);
-//  h_delta_theta  = new TH1F("h_delta_theta","h_delta_theta",200,-0.1,0.1);
+  h_tagger_theta = new TH1F("h_tagger_theta","h_tagger_theta",200,-0.1,0.1);
+  h_recoil_theta = new TH1F("h_recoil_theta","h_recoil_theta",200,-0.1,0.1);
+  h_delta_theta  = new TH1F("h_delta_theta","h_delta_theta",200,-0.1,0.1);
 
 
   //Comparison Histograms 
-//  h_delta_d0_vs_recoil_p = new TH2F("h_delta_d0_vs_recoil_p","h_delta_d0_vs_recoil_p",200,0,5,400,-1,1);
-//  h_delta_z0_vs_recoil_p = new TH2F("h_delta_z0_vs_recoil_p","h_delta_z0_vs_recoil_p",200,0,5,400,-1,1);
+  h_delta_d0_vs_recoil_p = new TH2F("h_delta_d0_vs_recoil_p","h_delta_d0_vs_recoil_p",200,0,5,400,-1,1);
+  h_delta_z0_vs_recoil_p = new TH2F("h_delta_z0_vs_recoil_p","h_delta_z0_vs_recoil_p",200,0,5,400,-1,1);
 
-//  h_td0_vs_rd0 = new TH2F("h_td0_vs_rd0","h_td0_vs_rd0",100,-40,40,100,-40,40);
-//  h_tz0_vs_rz0 = new TH2F("h_tz0_vs_rz0","h_tz0_vs_rz0",100,-40,40,100,-40,40);
+  h_td0_vs_rd0 = new TH2F("h_td0_vs_rd0","h_td0_vs_rd0",100,-40,40,100,-40,40);
+  h_tz0_vs_rz0 = new TH2F("h_tz0_vs_rz0","h_tz0_vs_rz0",100,-40,40,100,-40,40);
 
 
 
@@ -138,12 +133,6 @@ void validation_processor::produce(framework::Event &event) {
 
 
 
-  //multiple track debugging
-//  if (debug_) {
-//    std::cout<<"Retrieved track collections"<<std::endl;
-//    std::cout<<"Track 1 size:"<<TaggerTracks.size()<<std::endl;
-//    std::cout<<"Track 2 size:"<<RecoilTracks.size()<<std::endl;
-//  }
   
   
   //Retrieve the track collections
@@ -154,25 +143,13 @@ void validation_processor::produce(framework::Event &event) {
 
 
 
-//multiple track debugging
+  //multiple track debugging
   if (debug_) {
     std::cout<<"Retrieved track collections"<<std::endl;
     std::cout<<"Track 1 size:"<<TaggerTracks.size()<<std::endl;
     std::cout<<"Track 2 size:"<<RecoilTracks.size()<<std::endl;
   }
-
-
-
-
-
-  //Retrieve the truth seeds
-  //const std::vector<ldmx::Track> seeds = event.getCollection<ldmx::Track>("RecoilTruthSeeds");
   
-
-  //if we only use tagger 
-  //if (TaggerTracks.size() < 1)
-  //   return;
- 
   //Tagger + Recoil
   if (TaggerTracks.size() < 1 || RecoilTracks.size() < 1 )
      return; 
@@ -185,12 +162,14 @@ void validation_processor::produce(framework::Event &event) {
                                                                     TaggerTracks.front().getPerigeeY(),
                                                                     TaggerTracks.front().getPerigeeZ()));
 
-  //Monitoring of Tagger and Recoil Tracks 
+
+
+ ////Monitoring of Tagger and Recoil Tracks////
+
   TaggerRecoilMonitoring(TaggerTracks, RecoilTracks);
 
-  // filling Tagger and Recoil vectors with the important track parameters 
-
-  //TaggerParamVec
+  // filling Tagger and Recoil vectors (paramVector)  with the important track parameters 
+  // TaggerParamVec and covMat_T
   for (unsigned int iTaggerTrack = 0; iTaggerTrack < TaggerTracks.size() ; iTaggerTrack++) {
     
     Acts::BoundVector TaggerParamVec;
@@ -210,7 +189,7 @@ void validation_processor::produce(framework::Event &event) {
  }
       
 
-   //RecoilParamVec
+   //RecoilParamVec and covMat_R
    for (unsigned int iRecoilTrack = 0; iRecoilTrack < RecoilTracks.size() ; iRecoilTrack++) {
   
     Acts::BoundVector RecoilParamVec;
@@ -222,15 +201,7 @@ void validation_processor::produce(framework::Event &event) {
         RecoilTracks.at(iRecoilTrack).getQoP(),
         RecoilTracks.at(iRecoilTrack).getT();
     
-    
-
-    //creating the cov matrices 
-    // Tagger 
-    //Acts::BoundSymMatrix covMat_T =
-    //    tracking::sim::utils::unpackCov(TaggerTracks.at(iTaggerTrack).getPerigeeCov());
-    //    Acts::BoundTrackParameters(perigeeSurface, TaggerParamVec, std::move(covMat_T));
   
-    // Recoil
     Acts::BoundSymMatrix covMat_R =
         tracking::sim::utils::unpackCov(RecoilTracks.at(iRecoilTrack).getPerigeeCov());
         Acts::BoundTrackParameters(perigeeSurface, RecoilParamVec, std::move(covMat_R));
@@ -258,9 +229,9 @@ void validation_processor::onProcessEnd() {
   h_delta_d0->Write();
 
   //writing to z0 histos
-//  h_tagger_z0->Write();
-//  h_recoil_z0->Write();
-//  h_delta_z0->Write();
+  h_tagger_z0->Write();
+  h_recoil_z0->Write();
+  h_delta_z0->Write();
  
   //writing to p histos
   h_tagger_p->Write();
@@ -268,21 +239,21 @@ void validation_processor::onProcessEnd() {
   h_delta_p->Write();
 
   //writing to phi histos
-//  h_tagger_phi->Write();
-//  h_recoil_phi->Write();
-//  h_delta_phi->Write();
+  h_tagger_phi->Write();
+  h_recoil_phi->Write();
+  h_delta_phi->Write();
 
   //writing to theta histos
-//  h_tagger_theta->Write();
-//  h_recoil_theta->Write();
-//  h_delta_theta->Write();
+  h_tagger_theta->Write();
+  h_recoil_theta->Write();
+  h_delta_theta->Write();
 
   //writing to the comparison histos
-//  h_delta_d0_vs_recoil_p->Write();
-//  h_delta_z0_vs_recoil_p->Write();
+  h_delta_d0_vs_recoil_p->Write();
+  h_delta_z0_vs_recoil_p->Write();
 
-//  h_td0_vs_rd0->Write();
-//  h_tz0_vs_rz0->Write();
+  h_td0_vs_rd0->Write();
+  h_tz0_vs_rz0->Write();
 
 
 
@@ -298,10 +269,6 @@ void validation_processor::onProcessEnd() {
 void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>& TaggerTracks,
                                       const std::vector<ldmx::Track>& RecoilTracks) {
 
-  //For the moment only check that I have 1 tagger track and one recoil track
-  //To avoid trying to match them
-  //TODO update this logic
-
   if (TaggerTracks.size() != 1 || RecoilTracks.size() != 1)
     return;
 
@@ -309,16 +276,34 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
   ldmx::Track r_trk = RecoilTracks.at(0);
 
   //Defining track parameters [d0, z0, p, phi, theta]
+ 
+  //d0 
   double t_d0, r_d0;
-  double t_z0, r_z0;
-  double t_p, r_p;
-  double t_phi, r_phi;
-  double t_theta, r_theta;
-//to solve my error I think i need to do something like t_d0 = 
-   
   t_d0 = t_trk.getD0();
   r_d0 = r_trk.getD0();
 
+  //z0
+  double t_z0, r_z0;
+  t_z0 = t_trk.getZ0();
+  r_z0 = r_trk.getZ0();
+
+  //p , where we must convert from QoP information first 
+  double t_p, r_p;
+  t_p = t_trk.q() / t_trk.getQoP();
+  r_p = r_trk.q() / r_trk.getQoP();
+
+  //phi
+  double t_phi, r_phi;
+  t_phi = t_trk.getPhi();
+  r_phi = r_trk.getPhi();
+
+  //theta 
+  double t_theta, r_theta;
+  t_theta = t_trk.getTheta(); 
+  r_theta = r_trk.getTheta();
+
+
+  //Now we fill the histograms for each parameter
   
   //filling d0 histograms
   h_tagger_d0->Fill(t_d0);
@@ -326,42 +311,34 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
   h_delta_d0->Fill(t_d0 - r_d0);
 
   //filling z0 histograms 
-//  h_tagger_z0->Fill(t_trk.getZ0());
-//  h_recoil_z0->Fill(r_trk.getZ0());
-//  h_delta_z0->Fill(t_trk.getZ0() - r_trk.getZ0());
+  h_tagger_z0->Fill(t_z0);
+  h_recoil_z0->Fill(r_z0);
+  h_delta_z0->Fill(t_p - r_z0);
 
-
-  //Filling p histograms
-
-  //first, conversion from QoP
-  t_p = t_trk.q() / t_trk.getQoP();
-  r_p = r_trk.q() / r_trk.getQoP();
-
-
-  //now, filling the histograms  
+  //filling p histograms   
   h_tagger_p->Fill(t_p);
   h_recoil_p->Fill(r_p);
   h_delta_p->Fill(t_p - r_p);
   
   //filling phi histograms
-//  h_tagger_phi->Fill(t_trk.getPhi());
-//  h_recoil_phi->Fill(r_trk.getPhi());
-//  h_delta_phi->Fill(t_trk.getPhi() - r_trk.getPhi());
+  h_tagger_phi->Fill(t_phi);
+  h_recoil_phi->Fill(r_phi);
+  h_delta_phi->Fill(t_phi - r_phi);
 
   //filling theta histograms
-//  h_tagger_theta->Fill(t_trk.getTheta());
-//  h_recoil_theta->Fill(r_trk.getTheta());
-//  h_delta_theta->Fill(t_trk.getTheta() - r_trk.getTheta());
+  h_tagger_theta->Fill(t_theta);
+  h_recoil_theta->Fill(r_theta);
+  h_delta_theta->Fill(t_theta - r_theta);
 
   //filling comparison histogram
 
   //differential plots
-//  h_delta_d0_vs_recoil_p->Fill(r_p, t_trk.getD0() - r_trk.getD0());
-//  h_delta_z0_vs_recoil_p->Fill(r_p, t_trk.getZ0() - r_trk.getZ0());
+  h_delta_d0_vs_recoil_p->Fill(r_p, t_d0 - r_d0);
+  h_delta_z0_vs_recoil_p->Fill(r_p, t_d0 - r_z0);
 
   //"beamspot"
-//  h_td0_vs_rd0->Fill(r_trk.getD0(),t_trk.getD0());
-//  h_tz0_vs_rz0->Fill(r_trk.getZ0(),t_trk.getZ0());
+  h_td0_vs_rd0->Fill(r_z0,t_d0);
+  h_tz0_vs_rz0->Fill(r_d0,t_z0);
 
 
   //"pT"
