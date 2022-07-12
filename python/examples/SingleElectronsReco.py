@@ -5,7 +5,7 @@ p = ldmxcfg.Process("TrackerReco")
 
 p.libraries.append("libTracking.so")
 
-p.detector = '/Users/pbutti/sw/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml'
+p.detector = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw/Detectors/data/ldmx-det-v12-dd4hep/detector.xml'
 
 from LDMX.Tracking import tracking_geo
 from LDMX.Tracking import tracking_vtx
@@ -38,7 +38,7 @@ geo.theta_range = [0.4 * math.pi, 0.6 * math.pi] #dropped
 geo.pt = 4. #dropped
 geo.d0sigma = 0.1  #dropped
 geo.z0sigma = 0.1  #dropped
-geo.steps_file_path = "./recoil_evt_display.root"  #dropped
+# geo.steps_file_path = "./recoil_evt_display.root"  #dropped
 geo.perigee_location = [-700.,-27.926,0.0] #Generated electrons origin  #dropped
 
 #####
@@ -48,9 +48,10 @@ geo.perigee_location = [-700.,-27.926,0.0] #Generated electrons origin  #dropped
 geo.debug = False
 geo.propagator_step_size = 1.  #mm
 geo.propagator_maxSteps = 2000
-geo.bfield = -0.75  #in T #From looking at the BField map
+geo.bfield = -1.5  #in T #From looking at the BField map
 geo.const_b_field = False
-geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+geo.bfieldMap_ = "/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw/MagFieldMap/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+# geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
 #geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BMapConstant_1_5T.dat"
 #####
 
@@ -83,8 +84,8 @@ geo_tagger.debug = False
 geo_tagger.propagator_step_size = 2.  #mm
 geo_tagger.bfield = -1.5  #in T #From looking at the BField map
 geo_tagger.const_b_field = False
-geo_tagger.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
-#geo.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BMapConstant_1_5T.dat"
+# geo_tagger.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat
+geo_tagger.bfieldMap_ = "/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw/MagFieldMap/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
 #####
 
 #propagator tests
@@ -95,7 +96,7 @@ geo_tagger.theta_range = [0.4 * math.pi, 0.6 * math.pi] #dropped
 geo_tagger.pt = 4. #dropped
 geo_tagger.d0sigma = 0.1  #dropped
 geo_tagger.z0sigma = 0.1  #dropped
-geo_tagger.steps_file_path = "./straight_propagator_states.root"  #dropped
+# geo_tagger.steps_file_path = "./straight_propagator_states.root"  #dropped
 geo_tagger.perigee_location = [-700.,-27.926,0.0] #Generated electrons origin  #dropped
 
 #CKF Options
@@ -117,15 +118,15 @@ geo_tagger.pdgID = 11
 
 
 #Vertex the tracks in the tagger and in the recoil to obtain the beamspot information
-vtx = tracking_vtx.Vertexer()
-vtx.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
-vtx.debug = False
+# vtx = tracking_vtx.Vertexer()
+# vtx.bfieldMap_ = "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat"
+# vtx.debug = False
 
 
 #Match the recoil track to the tagger track and get the photon direction / momentum estimate
 
-
-p.sequence = [ts_ele, geo, geo_tagger, vtx]
+# temp: now just running true seedings and recoil reconstruction
+p.sequence = [ts_ele, geo]
 
 print(p.sequence)
 

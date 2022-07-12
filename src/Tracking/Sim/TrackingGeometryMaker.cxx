@@ -575,6 +575,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     h_z0_truth_    ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundLoc1>());
     h_phi_truth_   ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundPhi>());
     h_theta_truth_ ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundTheta>());
+    // h_qop_truth_   ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundQOverP>());
   }
   
   Acts::GainMatrixUpdater kfUpdater;
@@ -807,6 +808,8 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     tracks.push_back(trk);
     ntracks_++;
 
+    // Ben 7/7/22: change second.charge() > 0 to second.absoluteMomentum() < 1.2 
+    // NOTE: Units may not be GeV. Correct the line below if units are MeV. 
     if (ckf_result.fittedParameters.begin()->second.charge() > 0 )
       //Write the event display for the recoil
       WriteEvent(event,
@@ -895,7 +898,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
 
     //Refit track using the GSF
 
-    bool gsfRefit = true;
+    bool gsfRefit = false; //Ben: changed to false
     
     if (gsfRefit) {
 
