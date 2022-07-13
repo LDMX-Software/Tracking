@@ -11,6 +11,7 @@ p.detector = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw
 from LDMX.Tracking import tracking_geo
 from LDMX.Tracking import tracking_vtx
 from LDMX.Tracking import tracking_truthseeder
+from LDMX.Tracking import tracking_validate
 
 #Truth seeder - electrons
 ts_ele               = tracking_truthseeder.TruthSeedProcessor()
@@ -127,6 +128,15 @@ geo_tagger.pdgID = 11
 # vtx.debug = False
 
 
+# bugger = tracking_validate.validation_processor()
+# bugger.dumpobj = 0
+
+# #change to True for debugging
+# bugger.debug = False
+
+
+
+
 #Match the recoil track to the tagger track and get the photon direction / momentum estimate
 
 # temp: now just running true seedings and recoil reconstruction
@@ -134,6 +144,7 @@ p.sequence = [ts_ele, geo]
 
 print(p.sequence)
 
+# p.inputFiles = [os.environ["LDMX_BASE"]+"/data_ldmx/single_e/single_ele_tagger.root"]
 p.inputFiles = [
     os.environ["LDMX_BASE"]+"/data_ldmx/single_e/mc_v12-4GeV-1e-inclusive_run10001_t1636673834.root",
     os.environ["LDMX_BASE"]+"/data_ldmx/single_e/mc_v12-4GeV-1e-inclusive_run10014_t1636673703.root",
@@ -223,5 +234,5 @@ p.keep = [
 p.outputFiles = ['single_ele_tagger.root']
 
 p.termLogLevel=0
-p.maxEvents = 50000
+p.maxEvents = 1000
 
