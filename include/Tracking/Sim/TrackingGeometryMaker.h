@@ -114,9 +114,9 @@ using ActionList = Acts::ActionList<Acts::detail::SteppingLogger, Acts::Material
 using AbortList = Acts::AbortList<Acts::EndOfWorldReached>;
 using Propagator = Acts::Propagator<Acts::EigenStepper<>, Acts::Navigator>;
 
-
-using PropagatorOptions =
-    Acts::DenseStepperPropagatorOptions<ActionList, AbortList>;
+//?!
+//using PropagatorOptions =
+//    Acts::DenseStepperPropagatorOptions<ActionList, AbortList>;
 
 namespace tracking {
 namespace sim {
@@ -225,16 +225,10 @@ class TrackingGeometryMaker : public framework::Producer {
 
   //Processing time counter
   double processing_time_{0.};
-  
+    
+  //--- Smearing ---//
 
-  //--- Propagator Tests ---//
-
-  //Random number generator
-  int ntests_{0};
-  std::vector<double> phi_range_,theta_range_;
   std::default_random_engine generator_;
-  std::shared_ptr<std::uniform_real_distribution<double> > uniform_phi_;
-  std::shared_ptr<std::uniform_real_distribution<double> > uniform_theta_;
   std::shared_ptr<std::normal_distribution<float>> normal_;
 
   //Constant BField
@@ -242,12 +236,15 @@ class TrackingGeometryMaker : public framework::Producer {
   //Use constant bfield
   bool const_b_field_{true};
 
-  //Transverse Momentum
-  double pt_{1.};
-  //d0 and z0 are drawn from a gaussian distribution with these resolutions.
-  double d0sigma_{1.};
-  double z0sigma_{1.};
- 
+  //Remove stereo measurements
+  bool removeStereo_{false};
+
+  //Use 2d measurements instead of 1D
+  bool use1Dmeasurements_{true};
+  
+  //Minimum number of hits on tracks
+  int minHits_{7};
+  
   //Stepping size (in mm)
   double propagator_step_size_{200.};
   int propagator_maxSteps_{1000};
@@ -293,9 +290,6 @@ class TrackingGeometryMaker : public framework::Producer {
                         Acts::detail::VoidAuctioneer>,
                       Acts::Navigator> > >  gsf_;
   
-  //The options
-  std::shared_ptr<PropagatorOptions> options_;
-  
   //The propagator steps writer
   std::shared_ptr<PropagatorStepWriter> writer_;
 
@@ -317,6 +311,14 @@ class TrackingGeometryMaker : public framework::Producer {
   TH1F* histo_phi_;
   TH1F* histo_theta_;
   TH1F* histo_qop_;
+
+
+  TH1F* histo_p_pull_;
+  TH1F* histo_d0_pull_;
+  TH1F* histo_z0_pull_;
+  TH1F* histo_phi_pull_;
+  TH1F* histo_theta_pull_;
+  TH1F* histo_qop_pull_;
   
   TH1F* h_p_;
   TH1F* h_d0_;
@@ -325,6 +327,13 @@ class TrackingGeometryMaker : public framework::Producer {
   TH1F* h_theta_;
   TH1F* h_qop_;
   TH1F* h_nHits_;
+
+  TH1F* h_p_err_;
+  TH1F* h_d0_err_;
+  TH1F* h_z0_err_;
+  TH1F* h_phi_err_;
+  TH1F* h_theta_err_;
+  TH1F* h_qop_err_;
 
   TH1F* h_p_refit_;
   TH1F* h_d0_refit_;

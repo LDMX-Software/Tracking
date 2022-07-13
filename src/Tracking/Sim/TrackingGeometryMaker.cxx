@@ -32,14 +32,14 @@ void TrackingGeometryMaker::onProcessStart() {
   bctx_ = Acts::MagneticFieldContext();
 
 
-  std::cout<< "Getting the Random number generator"<<std::endl;
   // Get the random seed service
   //auto rseed{getCondition<framework::RandomNumberSeedService>(
   //    framework::RandomNumberSeedService::CONDITIONS_OBJECT_NAME)};
     
   // Create a seed and update the generator with it
   //generator_.seed(rseed.getSeed(getName()));
-  generator_.seed(std::chrono::system_clock::now().time_since_epoch().count());
+  //generator_.seed(std::chrono::system_clock::now().time_since_epoch().count());
+  generator_.seed(1);
 
   // Get the world detector element
   dd4hep::DetElement world{detector_->world()};
@@ -246,6 +246,13 @@ void TrackingGeometryMaker::onProcessStart() {
   histo_theta_  = new TH1F("theta_res","theta_res",200,-0.01,0.01);
   histo_qop_    = new TH1F("qop_res","qop_res",200,-5,5);
 
+  histo_p_pull_      = new TH1F("p_pull",    "p_pull",    200,-5,5);
+  histo_d0_pull_     = new TH1F("d0_pull",   "d0_pull",   200,-5,5);
+  histo_z0_pull_     = new TH1F("z0_pull",   "z0_pull",   200,-5,5);
+  histo_phi_pull_    = new TH1F("phi_pull",  "phi_pull",  200,-5,5);
+  histo_theta_pull_  = new TH1F("theta_pull","theta_pull",200,-5,5);
+  histo_qop_pull_    = new TH1F("qop_pull",  "qop_pull",  200,-5,5);
+
   h_p_      = new TH1F("p",    "p",600,0,6);
   h_d0_     = new TH1F("d0",   "d0",100,-20,20);
   h_z0_     = new TH1F("z0",   "z0",100,-50,50);
@@ -253,6 +260,13 @@ void TrackingGeometryMaker::onProcessStart() {
   h_theta_  = new TH1F("theta","theta",200,0.8,2.2);
   h_qop_    = new TH1F("qop","qop",200,-10,10);
   h_nHits_  = new TH1F("nHits","nHits",15,0,15);
+
+  h_p_err_      = new TH1F("p_err",    "p_err"    ,600,0,1);
+  h_d0_err_     = new TH1F("d0_err",   "d0_err"   ,100,0,0.05);
+  h_z0_err_     = new TH1F("z0_err",   "z0_err"   ,100,0,0.8);
+  h_phi_err_    = new TH1F("phi_err",  "phi_err"  ,200,0,0.002);
+  h_theta_err_  = new TH1F("theta_err","theta_err",200,0,0.02);
+  h_qop_err_    = new TH1F("qop_err",  "qop_err"  ,200,0,0.1);
 
   h_p_refit_      = new TH1F("p_refit",     "p_refit",600,0,6);
   h_d0_refit_     = new TH1F("d0_refit",    "d0_refit",100,-20,20);
@@ -314,38 +328,11 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       Acts::Surface::makeShared<Acts::PerigeeSurface>(
           Acts::Vector3(perigee_location_.at(0), perigee_location_.at(1), perigee_location_.at(2)));
 
-  //No randomisation
-
-  /// d0 gaussian sigma
-  double d0Sigma = d0sigma_ * Acts::UnitConstants::mm;
-  /// z0 gaussian sigma
-  double z0Sigma = z0sigma_ * Acts::UnitConstants::mm;
-  /// phi gaussian sigma (used for covariance transport)
-  double phiSigma = 0.0001;
-  /// theta gaussian sigma (used for covariance transport)
-  double thetaSigma = 0.0001;
-  /// qp gaussian sigma (used for covariance transport)
-  double qpSigma = 0.00001 / 1 * Acts::UnitConstants::GeV;
-  /// t gaussian sigma (used for covariance transport)
-  double tSigma = 1 * Acts::UnitConstants::ns;
-
-  /// phi range - generate only in the X<0 plane
-  uniform_phi_ = std::make_shared<std::uniform_real_distribution<double> >(phi_range_.at(0),
-                                                                           phi_range_.at(1));
-
-  /// theeta range - generate spanning the Z axis
-  uniform_theta_ = std::make_shared<std::uniform_real_distribution<double> >(theta_range_.at(0),
-                                                                             theta_range_.at(1));
-  
-  /// pt range
-  std::pair<double, double> ptRange = {100 * Acts::UnitConstants::MeV,
-    100 * Acts::UnitConstants::GeV};
-
   //Get the ACTS Logger -  Very annoying to have to define it in order to run this test.
   auto loggingLevel = Acts::Logging::DEBUG;
   ACTS_LOCAL_LOGGER(Acts::getDefaultLogger("LDMX Tracking Goemetry Maker", loggingLevel));
   
-  PropagatorOptions propagator_options(gctx_, bctx_, Acts::LoggerWrapper{logger()});
+  Acts::PropagatorOptions<ActionList, AbortList> propagator_options(gctx_, bctx_, Acts::LoggerWrapper{logger()});
   
   propagator_options.pathLimit = std::numeric_limits<double>::max();
   
@@ -360,10 +347,13 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
   
   // The logger can be switched to sterile, e.g. for timing logging
   auto& sLogger = propagator_options.actionList.get<Acts::detail::SteppingLogger>();
-  sLogger.sterile = false;
+  sLogger.sterile = true;
   // Set a maximum step size
   propagator_options.maxStepSize = propagator_step_size_ * Acts::UnitConstants::mm;
   propagator_options.maxSteps    = propagator_maxSteps_;
+
+  //Electron hypothesis
+  propagator_options.mass = 0.511 * Acts::UnitConstants::MeV;
       
   //std::cout<<"Setting up the Kalman Filter Algorithm"<<std::endl;
 
@@ -395,8 +385,16 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       
       if (pdgID_ != -9999 && abs(simHit.getPdgID()) != pdgID_)
         continue;
+
+      ldmx::LdmxSpacePoint* ldmxsp = utils::convertSimHitToLdmxSpacePoint(simHit);
       
-      ldmxsps.push_back(utils::convertSimHitToLdmxSpacePoint(simHit));
+      if (removeStereo_) {
+        unsigned int layerid = ldmxsp->layer();
+        if (layerid == 3101 || layerid == 3201 || layerid == 3301 || layerid == 3401 )
+          continue;
+      }
+
+      ldmxsps.push_back(ldmxsp);
     }
     
   }
@@ -416,20 +414,19 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
 
     ldmx::LdmxSpacePoint* ldmxsp = ldmxsps.at(i_ldmx_hit);
     unsigned int layerid = ldmxsp->layer();
-    
-    
+
     const Acts::Surface* hit_surface = layer_surface_map_[layerid];
     if (hit_surface) {
-
+      
       //Transform the ldmx space point from global to local and store the information
 
       
-      if (debug_) {
+      if (debug_ ) {
         std::cout<<"Global hit position on layer::"<< ldmxsp->layer()<<std::endl;
         std::cout<<ldmxsp->global_pos_<<std::endl;
         hit_surface->toStream(gctx_,std::cout);
-
-        std::cout<<"TRANSFORM"<<std::endl;
+        std::cout<<std::endl;
+        std::cout<<"TRANSFORM LOCAL TO GLOBAL"<<std::endl;
         std::cout<<hit_surface->transform(gctx_).rotation()<<std::endl;
         std::cout<<hit_surface->transform(gctx_).translation()<<std::endl;
       }
@@ -449,24 +446,45 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       
       if (do_smearing_) {
         float smear_factor{(*normal_)(generator_)};
+
+        if (debug_) {
+          std::cout<<"Smearing factor for u="<<smear_factor<<std::endl;
+          std::cout<<"Local Pos before::"<<local_pos[0]<<std::endl;
+        }
         local_pos[0] += smear_factor * sigma_u_;
+
+        if (debug_)
+          std::cout<<"Local Pos after::"<<local_pos[0]<<std::endl;
+        
         smear_factor = (*normal_)(generator_);
+        if (debug_) {
+          std::cout<<"Smearing factor for v="<<smear_factor<<std::endl;
+          std::cout<<"Local Pos before::"<<local_pos[1]<<std::endl;
+        }
         local_pos[1] += smear_factor * sigma_v_;
+        if (debug_)
+          std::cout<<"Local Pos after::"<<local_pos[1]<<std::endl;
         
         //update covariance
         ldmxsp->setLocalCovariance(sigma_u_ * sigma_u_, sigma_v_ * sigma_v_);
-
+        
         //update global position
-        //if (debug_) {
-        //  std::cout<<"Before smearing"<<std::endl;
-        //  std::cout<<ldmxsp->global_pos_<<std::endl;
-        //}
+        if (debug_) {
+        std::cout<<"Before smearing"<<std::endl;
+        std::cout<<ldmxsp->global_pos_<<std::endl;
+        }
         
         //cache the acts x coordinate 
         double original_x = ldmxsp->global_pos_(0);
 
         //transform to global
         ldmxsp->global_pos_ = hit_surface->localToGlobal(gctx_,local_pos,dummy_momentum);
+
+        if (debug_) {
+          std::cout<<"The global position after the smearing"<<std::endl;
+          std::cout<<ldmxsp->global_pos_<<std::endl;
+        }
+        
         
         //update the acts x location 
         ldmxsp->global_pos_(0) = original_x;
@@ -479,18 +497,13 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       
       ldmxsp->local_pos_ = local_pos;
 
-      //Store the smeared global position in the hit
-      //if (do_smearing_) {
-      //  ldmxsp->global_pos_
-      //}
-
       if (debug_) {
         std::cout<<"Local hit position::"<<std::endl;
         std::cout<<ldmxsp->local_pos_<<std::endl;
       }
 
       ActsExamples::IndexSourceLink idx_sl(hit_surface->geometryId(),i_ldmx_hit);
-      //geoId_sl_map_[hit_surface->geometryId()].push_back(idx_sl);
+
       geoId_sl_mmap_.insert(std::make_pair(hit_surface->geometryId(), idx_sl));
             
     }
@@ -499,14 +512,6 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     
   }
       
-  //The generation informations
-  //Gen 1 Momentum [MeV] X = 313.836
-  //Gen 1 Momentum [MeV] Y = 0
-  //Gen 1 Momentum [MeV] Z = 3987.67
-  //Gen 1 Vertex [mm] X = -27.926
-  //Gen 1 Vertex [mm] Y = 0
-  //Gen 1 Vertex [mm] Z = -700
-  
   // ============   Setup the CKF  ============
   Acts::CombinatorialKalmanFilter<Propagator> ckf(*propagator_);  //Acts::Propagagtor<Acts::EigenStepper<>, Acts::Navigator>
   
@@ -563,8 +568,11 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
                                                          covMat));  
   }
   
-  if (startParameters.size() != 1 )
-    return;
+  if (startParameters.size() != 1 ) {
+    std::vector<ldmx::Track> empty;
+    event.add(out_trk_collection_,empty); return;
+  }
+   
 
   nseeds_++ ;
   
@@ -575,7 +583,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     h_z0_truth_    ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundLoc1>());
     h_phi_truth_   ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundPhi>());
     h_theta_truth_ ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundTheta>());
-    // h_qop_truth_   ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundQOverP>());
+    h_qop_truth_   ->Fill(startParameters.at(0).get<Acts::BoundIndices::eBoundQOverP>());
   }
   
   Acts::GainMatrixUpdater kfUpdater;
@@ -590,22 +598,15 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
      {{}, {std::numeric_limits<double>::max()}, {1u}}},
   };
   
-  /* -- main --
-  Acts::MeasurementSelector::Config measurementSelectorCfg = {
-    // global default: no chi2 cut, only one measurement per surface
-    {Acts::GeometryIdentifier(),
-     {{}, {std::numeric_limits<double>::max()}, {1u}}},
-  };
-  */
-  
   Acts::MeasurementSelector measSel{measurementSelectorCfg};
   LdmxMeasurementCalibrator calibrator{ldmxsps};
   
   Acts::CombinatorialKalmanFilterExtensions ckf_extensions;
-  
-  ckf_extensions.calibrator.connect<&LdmxMeasurementCalibrator::calibrate_1d>(&calibrator);
-  //2D
-  //ckf_extensions.calibrator.connect<&LdmxMeasurementCalibrator::calibrate>(&calibrator);
+
+  if (use1Dmeasurements_)
+    ckf_extensions.calibrator.connect<&LdmxMeasurementCalibrator::calibrate_1d>(&calibrator);
+  else 
+    ckf_extensions.calibrator.connect<&LdmxMeasurementCalibrator::calibrate>(&calibrator);
   ckf_extensions.updater.connect<&Acts::GainMatrixUpdater::operator()>(&kfUpdater);
   ckf_extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
   ckf_extensions.measurementSelector.connect<&Acts::MeasurementSelector::select>(&measSel);
@@ -639,9 +640,13 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     extr_surface = &(*seed_surface);
   }
 
+  auto ckf_loggingLevel = Acts::Logging::INFO;
+  if (debug_)
+    ckf_loggingLevel = Acts::Logging::VERBOSE;
+  const auto ckflogger = Acts::getDefaultLogger("CKF", ckf_loggingLevel);
   Acts::CombinatorialKalmanFilterOptions<LdmxSourceLinkAccessor> kfOptions(
       gctx_,bctx_,cctx_,
-      LdmxSourceLinkAccessor(), ckf_extensions, Acts::LoggerWrapper{logger()},
+      LdmxSourceLinkAccessor(), ckf_extensions, Acts::LoggerWrapper{*ckflogger},
       propagator_options,&(*extr_surface));
   
   // run the CKF for all initial track states
@@ -710,30 +715,64 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     if (trajState.nStates != trajState.nMeasurements + trajState.nOutliers + trajState.nHoles) {
       if (debug_)
         std::cout<<"WARNING:: Found track with nStates inconsistent with expectation"<<std::endl;
-      continue;
+      //continue;
     }
 
     //Cut on number of hits?
-    if (trajState.nMeasurements < 7 )
+    if (trajState.nMeasurements < minHits_)
       continue;
 
     h_nHits_->Fill(trajState.nMeasurements);
         
     for (const auto& pair : ckf_result.fittedParameters) {
       //std::cout<<"Number of hits-on-track::" << (int) pair.first << std::endl;
-            
-      histo_p_    ->Fill(pair.second.absoluteMomentum() - startParameters.at(0).absoluteMomentum());
-      histo_d0_   ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc0>() - startParameters.at(0).get<Acts::BoundIndices::eBoundLoc0>());
-      histo_z0_   ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc1>() - startParameters.at(0).get<Acts::BoundIndices::eBoundLoc1>());
-      histo_phi_  ->Fill(pair.second.get<Acts::BoundIndices::eBoundPhi>() - startParameters.at(0).get<Acts::BoundIndices::eBoundPhi>());
-      histo_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>() - startParameters.at(0).get<Acts::BoundIndices::eBoundTheta>());
+
+
+      double resp     = pair.second.absoluteMomentum() - startParameters.at(0).absoluteMomentum();
+      double resd0    = pair.second.get<Acts::BoundIndices::eBoundLoc0>() - startParameters.at(0).get<Acts::BoundIndices::eBoundLoc0>();
+      double resz0    = pair.second.get<Acts::BoundIndices::eBoundLoc1>() - startParameters.at(0).get<Acts::BoundIndices::eBoundLoc1>();
+      double resphi   = pair.second.get<Acts::BoundIndices::eBoundPhi>() - startParameters.at(0).get<Acts::BoundIndices::eBoundPhi>();
+      double restheta = pair.second.get<Acts::BoundIndices::eBoundTheta>() - startParameters.at(0).get<Acts::BoundIndices::eBoundTheta>();
+      histo_p_    ->Fill(resp);
+      histo_d0_   ->Fill(resd0);
+      histo_z0_   ->Fill(resz0);
+      histo_phi_  ->Fill(resphi);
+      histo_theta_->Fill(restheta);
       
       h_p_    ->Fill(pair.second.absoluteMomentum());
       h_d0_   ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc0>());
       h_z0_   ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc1>());
       h_phi_  ->Fill(pair.second.get<Acts::BoundIndices::eBoundPhi>());
       h_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>());
+      h_qop_  ->Fill(pair.second.get<Acts::BoundIndices::eBoundQOverP>());
       
+      //auto cov = pair.second.covariance();
+      //auto stddev = cov.diagonal().cwiseSqrt().eval();
+      
+      auto cov = pair.second.covariance();
+      double sigma_d0    = sqrt(cov.value()(Acts::BoundIndices::eBoundLoc0,Acts::BoundIndices::eBoundLoc0));
+      double sigma_z0    = sqrt(cov.value()(Acts::BoundIndices::eBoundLoc1,Acts::BoundIndices::eBoundLoc1));
+      double sigma_phi   = sqrt(cov.value()(Acts::BoundIndices::eBoundPhi,Acts::BoundIndices::eBoundPhi));
+      double sigma_theta = sqrt(cov.value()(Acts::BoundIndices::eBoundTheta,Acts::BoundIndices::eBoundTheta));
+      double sigma_qop   = sqrt(cov.value()(Acts::BoundIndices::eBoundQOverP,Acts::BoundIndices::eBoundQOverP));
+                  
+      h_d0_err_   ->Fill(sigma_d0);
+      h_z0_err_   ->Fill(sigma_z0);  
+      h_phi_err_  ->Fill(sigma_phi);  
+      h_theta_err_->Fill(sigma_theta);  
+      h_qop_err_  ->Fill(sigma_qop);
+
+      
+      histo_d0_pull_    ->Fill(resd0/sigma_d0);
+      histo_z0_pull_    ->Fill(resz0/sigma_z0);
+      histo_phi_pull_   ->Fill(resphi/sigma_phi);
+      histo_theta_pull_ ->Fill(restheta/sigma_theta);
+      
+      double sigma_p = pair.second.absoluteMomentum() * pair.second.absoluteMomentum() * sigma_qop;
+      
+      h_p_err_         ->Fill(sigma_p);
+      histo_p_pull_    ->Fill(resp / sigma_p);
+            
     }
 
     //Create a track object
@@ -904,7 +943,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
 
       try {
 
-        std::cout<<"GSF:: Gathering measurements"<<std::endl;
+        
         const auto gsfLogger = Acts::getDefaultLogger("GSF",Acts::Logging::INFO);
         std::vector<std::reference_wrapper<const ActsExamples::IndexSourceLink>> fit_trackSourceLinks;
         mj.visitBackwards(trackTip, [&](const auto& state) {
@@ -916,7 +955,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
           }
         });
 
-        std::cout<<"GSF extensions"<<std::endl;
+        
         //Same extensions of the KF
         Acts::KalmanFitterExtensions gsf_extensions;
         gsf_extensions.calibrator.connect<&LdmxMeasurementCalibrator::calibrate_1d>(&calibrator);
@@ -924,7 +963,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
         gsf_extensions.smoother.connect<&Acts::GainMatrixSmoother::operator()>(&kfSmoother);
 
 
-        std::cout<<"GSF options"<<std::endl;
+        
         Acts::GsfOptions gsf_options{gctx_,
           bctx_,
           cctx_,
@@ -936,7 +975,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
           true,
           false};
         
-        std::cout<<"GSF Fit"<<std::endl;
+        
         
         
         auto gsf_refit_result = gsf_->fit(fit_trackSourceLinks.begin(),
@@ -944,7 +983,7 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
                                           ckf_result.fittedParameters.begin()->second,
                                           gsf_options);
         
-        std::cout<<"Checking results."<<std::endl;
+        
         if (!gsf_refit_result.ok()) {
           std::cout<<"GSF Refit failed"<<std::endl;
         }
@@ -989,7 +1028,7 @@ void TrackingGeometryMaker::onProcessEnd() {
   std::cout<<"Producer " << getName() << " found " << ntracks_ <<" tracks  / " << nseeds_ << " nseeds"<<std::endl;
   
   
-  TFile* outfile_ = new TFile(getName().c_str(),"RECREATE");
+  TFile* outfile_ = new TFile((getName()+".root").c_str(),"RECREATE");
   outfile_->cd();
 
   histo_p_->Write();
@@ -998,12 +1037,26 @@ void TrackingGeometryMaker::onProcessEnd() {
   histo_phi_->Write();
   histo_theta_->Write();
 
+  histo_p_pull_->Write();
+  histo_d0_pull_->Write();
+  histo_z0_pull_->Write();
+  histo_phi_pull_->Write();
+  histo_theta_pull_->Write();
+
   h_p_->Write();
   h_d0_->Write();
   h_z0_->Write();
   h_phi_->Write();
   h_theta_->Write();
+  h_qop_->Write();
   h_nHits_->Write();
+  
+  h_p_err_->Write();
+  h_d0_err_->Write();
+  h_z0_err_->Write();
+  h_phi_err_->Write();
+  h_theta_err_->Write();
+  h_qop_err_->Write();
 
   h_p_refit_->Write();
   h_d0_refit_->Write();
@@ -1023,6 +1076,7 @@ void TrackingGeometryMaker::onProcessEnd() {
   h_z0_truth_->Write();
   h_phi_truth_->Write();
   h_theta_truth_->Write();
+  h_qop_truth_->Write();
   
   outfile_->Close();  
   delete outfile_;
@@ -1246,8 +1300,21 @@ Acts::CuboidVolumeBuilder::VolumeConfig TrackingGeometryMaker::volumeBuilder_dd4
     // Material
         
     dd4hep::Material de_mat = sensor.volume().material();
-    Acts::Material silicon = Acts::Material::fromMassDensity(de_mat.radLength(),de_mat.intLength(), de_mat.A(), de_mat.Z(), de_mat.density());
-    Acts::MaterialSlab silicon_slab(silicon,thickness); 
+
+    /*
+    Acts::Material silicon = Acts::Material::fromMassDensity(de_mat.radLength() * Acts::UnitConstants::mm,
+                                                             de_mat.intLength() * Acts::UnitConstants::mm,
+                                                             de_mat.A(),
+                                                             de_mat.Z(),
+                                                             de_mat.density() * Acts::UnitConstants::g / Acts::UnitConstants::cm3);
+    */
+    Acts::Material silicon = Acts::Material::fromMassDensity(95.7 * Acts::UnitConstants::mm,
+                                                             465.2 * Acts::UnitConstants::mm,
+                                                             28.03,
+                                                             14.,
+                                                             2.32 * Acts::UnitConstants::g / Acts::UnitConstants::cm3);
+    
+    Acts::MaterialSlab silicon_slab(silicon,thickness * Acts::UnitConstants::mm); 
     cfg.thickness = thickness;
     cfg.surMat = std::make_shared<Acts::HomogeneousSurfaceMaterial>(silicon_slab);
 
@@ -1418,12 +1485,8 @@ void TrackingGeometryMaker::configure(framework::config::Parameters &parameters)
     
   dumpobj_            = parameters.getParameter<int>("dumpobj");
   steps_outfile_path_ = parameters.getParameter<std::string>("steps_file_path","propagation_steps.root");
-  ntests_             = parameters.getParameter<int>("ntests", 1000);
-  phi_range_          = parameters.getParameter<std::vector<double> >("phi_range",   {-1.1 * M_PI,-0.9 * M_PI});
-  theta_range_        = parameters.getParameter<std::vector<double> >("theta_range", { 0.4 * M_PI, 0.6 * M_PI});
   trackID_            = parameters.getParameter<int>("trackID",-1);
   pdgID_              = parameters.getParameter<int>("pdgID",11);
-  
   
   bfield_               = parameters.getParameter<double>("bfield", 0.);
   const_b_field_        = parameters.getParameter<bool>("const_b_field",true);
@@ -1431,14 +1494,23 @@ void TrackingGeometryMaker::configure(framework::config::Parameters &parameters)
                                                                "/Users/pbutti/sw/data_ldmx/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat");
   propagator_step_size_ = parameters.getParameter<double>("propagator_step_size", 200.);
   propagator_maxSteps_  = parameters.getParameter<int>("propagator_maxSteps", 10000);
-  pt_                   = parameters.getParameter<double>("pt", 1.);
-  d0sigma_              = parameters.getParameter<double>("d0sigma",1.);
-  z0sigma_              = parameters.getParameter<double>("z0sigma",1.);
   perigee_location_     = parameters.getParameter<std::vector<double> >("perigee_location", {0.,0.,0.});
   debug_                = parameters.getParameter<bool>("debug",false);
   hit_collection_       = parameters.getParameter<std::string>("hit_collection","TaggerSimHits");
-  
 
+  removeStereo_         = parameters.getParameter<bool>("removeStereo",false);
+  if (removeStereo_)
+    std::cout<<"CONFIGURE::removeStereo="<<(int)removeStereo_<<std::endl;
+
+  use1Dmeasurements_    = parameters.getParameter<bool>("use1Dmeasurements",true);
+  
+  if (use1Dmeasurements_)
+    std::cout<<"CONFIGURE::use1Dmeasurements="<<(int)use1Dmeasurements_<<std::endl;
+
+  minHits_              = parameters.getParameter<int>("minHits",7);
+
+  std::cout<<"CONFIGURE::minHits="<<minHits_<<std::endl;
+                                                        
   //Ckf specific options
   use_extrapolate_location_  = parameters.getParameter<bool>("use_extrapolate_location", true);
   extrapolate_location_ = parameters.getParameter<std::vector<double> >("extrapolate_location", {0.,0.,0.});
@@ -1454,8 +1526,8 @@ void TrackingGeometryMaker::configure(framework::config::Parameters &parameters)
   //Hit smearing
 
   do_smearing_ = parameters.getParameter<bool>("do_smearing",false);
-  sigma_u_ = parameters.getParameter<double>("sigma_u", 0.05);
-  sigma_v_ = parameters.getParameter<double>("sigma_v", 1.);
+  sigma_u_ = parameters.getParameter<double>("sigma_u", 0.01);
+  sigma_v_ = parameters.getParameter<double>("sigma_v", 0.);
     
   std::cout<<__PRETTY_FUNCTION__<<"  HitCollection::"<<hit_collection_<<std::endl;
 }
@@ -1772,7 +1844,7 @@ void TrackingGeometryMaker::makeLayerSurfacesMap(std::shared_ptr<const Acts::Tra
   
   PropagationOutput pOutput;
   const auto evtLogger = Acts::getDefaultLogger("evtDisplay", Acts::Logging::INFO);
-  PropagatorOptions propagator_options(gctx_, bctx_, Acts::LoggerWrapper{*evtLogger});
+  Acts::PropagatorOptions<ActionList, AbortList> propagator_options(gctx_, bctx_, Acts::LoggerWrapper{*evtLogger});
   
   propagator_options.pathLimit = std::numeric_limits<double>::max();
   
