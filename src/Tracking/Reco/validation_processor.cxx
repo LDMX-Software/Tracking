@@ -20,6 +20,7 @@ validation_processor::~validation_processor() {}
 
 void validation_processor::onProcessStart(){
 
+  std::cout << "check 1" << std::endl;
 ////Monitoring plots////
  //range in GeV//
  
@@ -34,6 +35,7 @@ void validation_processor::onProcessStart(){
   // Ben: change d0 to QoP here (naming doesn't matter here)
   //      leave d0min/max completely alone
 
+  std::cout << "check 2" << std::endl;
   //d0 histograms 
   h_tagger_qop  = new TH1F("h_tagger_qop","h_tagger_qop",400, d0min, d0max);
   h_recoil_qop  = new TH1F("h_recoil_qop","h_recoil_qop",400, d0min, d0max);
@@ -67,7 +69,7 @@ void validation_processor::onProcessStart(){
   // h_td0_vs_rd0 = new TH2F("h_td0_vs_rd0","h_td0_vs_rd0",100,-40,40,100,-40,40);
   // h_tz0_vs_rz0 = new TH2F("h_tz0_vs_rz0","h_tz0_vs_rz0",100,-40,40,100,-40,40);
 
-
+  std::cout << "check 3" << std::endl;
 
 
   //  detector_ = &detector();
@@ -87,6 +89,8 @@ void validation_processor::onProcessStart(){
                                                                    true //rotate the axes to tracking frame
                                                                    );
 
+  std::cout << "check 4" << std::endl;
+
   Acts::Vector3 b_field(0.,0.,-1.5 * Acts::UnitConstants::T);
   bField_ = std::make_shared<Acts::ConstantBField>(b_field);
 
@@ -98,7 +102,7 @@ void validation_processor::onProcessStart(){
   auto&& stepper       = Acts::EigenStepper<>{sp_interpolated_bField_};  
 
 
-
+  std::cout << "check 5" << std::endl;
 
 // Set up propagator with void navigator
 
@@ -110,12 +114,12 @@ void validation_processor::onProcessStart(){
 
   
 }
-
+  // std::cout << "check 6" << std::endl;
 void validation_processor::configure(framework::config::Parameters &parameters){
 
   debug_                = parameters.getParameter<bool>("debug",false);
 
-  bfieldMap_ = parameters.getParameter<std::string>("bfieldMap_", "/Users/emryspeets/sw/data_ldmx/field_map/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat");
+  bfieldMap_ = parameters.getParameter<std::string>("bfieldMap_", "/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw/MagFieldMap/BmapCorrected3D_13k_unfolded_scaled_1.15384615385.dat");
 
 
   trk_c_name_1       = parameters.getParameter<std::string>("trk_c_name_1","TaggerTracks");
@@ -123,7 +127,7 @@ void validation_processor::configure(framework::config::Parameters &parameters){
 
 }
 
-
+  // std::cout << "check 7" << std::endl;
 void validation_processor::produce(framework::Event &event) {
 
   nevents_++;
@@ -135,7 +139,7 @@ void validation_processor::produce(framework::Event &event) {
   propagator_ = std::make_shared<VoidPropagator>(stepper);
 
 
-
+  std::cout << "check 8" << std::endl;
   
   
   //Retrieve the track collections
@@ -144,7 +148,7 @@ void validation_processor::produce(framework::Event &event) {
 
   
 
-
+  std::cout << "check 9" << std::endl;
 
   //multiple track debugging
   if (debug_) {
@@ -157,7 +161,7 @@ void validation_processor::produce(framework::Event &event) {
   if (TaggerTracks.size() < 1 || RecoilTracks.size() < 1 )
      return; 
 
-
+  
   
   //perigee surface created using Tagger, is common for recoil by construction
   std::shared_ptr<Acts::PerigeeSurface> perigeeSurface =
@@ -165,7 +169,7 @@ void validation_processor::produce(framework::Event &event) {
                                                                     TaggerTracks.front().getPerigeeY(),
                                                                     TaggerTracks.front().getPerigeeZ()));
 
-
+  std::cout << "check 10" << std::endl;
 
  ////Monitoring of Tagger and Recoil Tracks////
 
@@ -173,6 +177,7 @@ void validation_processor::produce(framework::Event &event) {
 
   // filling Tagger and Recoil vectors (paramVector)  with the important track parameters 
   // TaggerParamVec and covMat_T
+  std::cout << "check 11" << std::endl;
   for (unsigned int iTaggerTrack = 0; iTaggerTrack < TaggerTracks.size() ; iTaggerTrack++) {
     
     Acts::BoundVector TaggerParamVec;
@@ -183,7 +188,7 @@ void validation_processor::produce(framework::Event &event) {
         TaggerTracks.at(iTaggerTrack).getTheta(),
         TaggerTracks.at(iTaggerTrack).getQoP(),
         TaggerTracks.at(iTaggerTrack).getT();
-   
+
     // Tagger covMat
     Acts::BoundSymMatrix covMat_T =
         tracking::sim::utils::unpackCov(TaggerTracks.at(iTaggerTrack).getPerigeeCov());
@@ -210,7 +215,7 @@ void validation_processor::produce(framework::Event &event) {
         Acts::BoundTrackParameters(perigeeSurface, RecoilParamVec, std::move(covMat_R));
 
 }
-    
+    std::cout << "check 12" << std::endl;
     //setting up clock info
     auto end = std::chrono::high_resolution_clock::now();
     //long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
