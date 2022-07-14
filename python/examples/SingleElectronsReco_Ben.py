@@ -234,5 +234,5 @@ p.keep = [
 p.outputFiles = ['single_ele_tagger.root']
 
 p.termLogLevel=0
-p.maxEvents = 1000
+p.maxEvents = 50000
 
