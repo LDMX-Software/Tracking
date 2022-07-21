@@ -293,8 +293,37 @@ void TrackingGeometryMaker::onProcessStart() {
   h_qop_truth_    = new TH1F("qop_truth","qop_truth",200,-10,10);
 
   h_tgt_scoring_x_y_      = new TH2F("tgt_scoring_x_y",    "tgt_scoring_x_y",100,-40,40,100,-40,40);
-  h_tgt_scoring_z_        = new TH1F("tgt_scoring_z",      "tgt_scoring_z"  ,100,0,10);
+  h_tgt_scoring_z_        = new TH1F("tgt_scoring_z",      "tgt_scoring_z"  ,100,0,10); 
   
+
+  // Ben: Trying to fill TTrees instead of hists
+  // Float_t vp1;
+  // t_p_    = new TTree("p", "p");
+  // t_p_->Branch("vp1",&vp1);
+
+  h_pres_vs_p_    = new TH2F("pres_vs_p",   "pres_vs_p", 100, 0, 6, 200, -3.5, 1.5);
+  h_perr_vs_p_    = new TH2F("perr_vs_p",   "perr_vs_p", 100, 0, 6, 600, 0, 1.25);
+  h_ppull_vs_p_   = new TH2F("ppull_vs_p",  "ppull_vs_p", 100, 0, 6, 200, -35, 5);
+  h_qop_vs_p_     = new TH2F("qop_vs_p",    "qop_vs_p", 100, 0, 6, 200, -10, 10);
+  h_qoperr_vs_p_  = new TH2F("qoperr_vs_p", "qoperr_vs_p", 100, 0, 6, 200, 0, 0.20);
+  h_d0err_vs_p_   = new TH2F("d0err_vs_p",  "d0err_vs_p", 100, 0, 6, 200, 0, 0.15);
+  h_z0err_vs_p_   = new TH2F("z0err_vs_p",  "z0err_vs_p", 100, 0, 6, 100, 0, 0.8);
+  h_phierr_vs_p_  = new TH2F("phierr_vs_p", "phierr_vs_p", 100, 0, 6, 200, 0, 0.004);
+  h_thetaerr_vs_p_= new TH2F("thetaerr_vs_p", "thetaerr_vs_p", 100, 0, 6, 200, 0, 0.02);
+
+  h_qoperr_vs_qop_    = new TH2F("qoperr_vs_qop", "qoperr_vs_qop", 200, -10, 10, 200, 0, 0.15);
+  h_d0err_vs_d0_      = new TH2F("d0err_vs_d0",   "d0err_vs_d0", 100, -20, 20, 100, 0, 0.05);
+  h_z0err_vs_z0_      = new TH2F("z0err_vs_z0",   "z0err_vs_z0", 100, -50, 50, 100, 0, 0.8);
+  h_phierr_vs_phi_    = new TH2F("phierr_vs_phi", "phierr_vs_phi", 200, -0.5, 0.5, 200, 0, 0.004);
+  h_thetaerr_vs_theta_= new TH2F("thetaerr_vs_theta", "thetaerr_vs_theta", 200, 0.8, 2.2, 200, 0, 0.02);
+
+  h_qopres_vs_qop_    = new TH2F("qopres_vs_qop", "qopres_vs_qop", 200, -10, 10, 200, -5, 5);
+  h_d0res_vs_d0_      = new TH2F("d0res_vs_d0", "d0res_vs_d0", 200, -17, 17, 200, -17, 17);
+  h_z0res_vs_z0_      = new TH2F("z0res_vs_z0", "z0res_vs_z0", 100, -50, 50, 200, -50, 50);
+  h_phires_vs_phi_    = new TH2F("phires_vs_phi", "phires_vs_phi", 200, -0.5, 0.5, 200, -0.015, 0.025);
+  h_thetares_vs_theta_= new TH2F("thetares_vs_theta", "thetares_vs_theta", 200, 1.4, 1.8, 200, -0.025, 0.025);
+
+  h_nHits_vs_qoperr_  = new TH2F("nHits_vs_qoperr", "nHits_vs_qoperr", 200, 0, 0.15, 15, 0, 15);
 }
 
 void TrackingGeometryMaker::produce(framework::Event &event) {
@@ -733,11 +762,14 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       double resz0    = pair.second.get<Acts::BoundIndices::eBoundLoc1>() - startParameters.at(0).get<Acts::BoundIndices::eBoundLoc1>();
       double resphi   = pair.second.get<Acts::BoundIndices::eBoundPhi>() - startParameters.at(0).get<Acts::BoundIndices::eBoundPhi>();
       double restheta = pair.second.get<Acts::BoundIndices::eBoundTheta>() - startParameters.at(0).get<Acts::BoundIndices::eBoundTheta>();
+      double resqop   = pair.second.get<Acts::BoundIndices::eBoundQOverP>() - startParameters.at(0).get<Acts::BoundIndices::eBoundQOverP>();
       histo_p_    ->Fill(resp);
       histo_d0_   ->Fill(resd0);
       histo_z0_   ->Fill(resz0);
       histo_phi_  ->Fill(resphi);
       histo_theta_->Fill(restheta);
+      // TODO: Add resqop TH1D hist
+      // TODO: make doubles for each parameter, like pair.second.get<Acts::BoundIndices::eBoundLoc0>()
       
       h_p_    ->Fill(pair.second.absoluteMomentum());
       h_d0_   ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc0>());
@@ -745,7 +777,16 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       h_phi_  ->Fill(pair.second.get<Acts::BoundIndices::eBoundPhi>());
       h_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>());
       h_qop_  ->Fill(pair.second.get<Acts::BoundIndices::eBoundQOverP>());
-      
+
+      // Ben: Trying to fill newly created TTree of absolute momentum p
+      // vp1 = pair.second.absoluteMomentum();
+      // t_p_    ->Fill();
+      // vp1.push_back(pair.second.absoluteMomentum());
+      // vp1.clear();
+      // float_t vp1 = pair.second.absoluteMomentum();
+      // t_p_    ->Fill();
+
+
       //auto cov = pair.second.covariance();
       //auto stddev = cov.diagonal().cwiseSqrt().eval();
       
@@ -772,7 +813,32 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       
       h_p_err_         ->Fill(sigma_p);
       histo_p_pull_    ->Fill(resp / sigma_p);
-            
+
+      // Fill 2D histograms 
+      h_pres_vs_p_    ->Fill(pair.second.absoluteMomentum(), resp);
+      h_perr_vs_p_    ->Fill(pair.second.absoluteMomentum(), sigma_p);
+      h_ppull_vs_p_   ->Fill(pair.second.absoluteMomentum(), resp / sigma_p);
+      h_qop_vs_p_     ->Fill(pair.second.absoluteMomentum(), pair.second.get<Acts::BoundIndices::eBoundQOverP>());
+
+      h_qoperr_vs_p_  ->Fill(pair.second.absoluteMomentum(), sigma_qop);
+      h_d0err_vs_p_   ->Fill(pair.second.absoluteMomentum(), sigma_d0);
+      h_z0err_vs_p_   ->Fill(pair.second.absoluteMomentum(), sigma_z0);
+      h_phierr_vs_p_  ->Fill(pair.second.absoluteMomentum(), sigma_phi);
+      h_thetaerr_vs_p_->Fill(pair.second.absoluteMomentum(), sigma_theta);
+
+      h_qoperr_vs_qop_    ->Fill(pair.second.get<Acts::BoundIndices::eBoundQOverP>(), sigma_qop);
+      h_d0err_vs_d0_      ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc0>(),   sigma_d0);
+      h_z0err_vs_z0_      ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc1>(),   sigma_z0);
+      h_phierr_vs_phi_    ->Fill(pair.second.get<Acts::BoundIndices::eBoundPhi>(),    sigma_phi);
+      h_thetaerr_vs_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>(),  sigma_theta);
+
+      h_qopres_vs_qop_    ->Fill(pair.second.get<Acts::BoundIndices::eBoundQOverP>(), resqop);
+      h_d0res_vs_d0_      ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc0>(),   resd0);
+      h_z0res_vs_z0_      ->Fill(pair.second.get<Acts::BoundIndices::eBoundLoc1>(),   resz0);
+      h_phires_vs_phi_    ->Fill(pair.second.get<Acts::BoundIndices::eBoundPhi>(),    resphi);
+      h_thetares_vs_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>(),  restheta);
+
+      h_nHits_vs_qoperr_  ->Fill(sigma_qop, trajState.nMeasurements);
     }
 
     //Create a track object
@@ -1050,6 +1116,9 @@ void TrackingGeometryMaker::onProcessEnd() {
   h_theta_->Write();
   h_qop_->Write();
   h_nHits_->Write();
+
+  // Ben: Trying to write TTree of absolute momentum p
+  // t_p_->Write();
   
   h_p_err_->Write();
   h_d0_err_->Write();
@@ -1077,6 +1146,31 @@ void TrackingGeometryMaker::onProcessEnd() {
   h_phi_truth_->Write();
   h_theta_truth_->Write();
   h_qop_truth_->Write();
+
+  h_pres_vs_p_->Write();
+  h_perr_vs_p_->Write();
+  h_ppull_vs_p_->Write();
+  h_qop_vs_p_->Write();
+
+  h_qoperr_vs_p_->Write();
+  h_d0err_vs_p_->Write();
+  h_z0err_vs_p_->Write();
+  h_phierr_vs_p_->Write();
+  h_thetaerr_vs_p_->Write();
+
+  h_qoperr_vs_qop_->Write();
+  h_d0err_vs_d0_->Write();
+  h_z0err_vs_z0_->Write();
+  h_phierr_vs_phi_->Write();
+  h_thetaerr_vs_theta_->Write();
+
+  h_qopres_vs_qop_->Write();
+  h_d0res_vs_d0_->Write();
+  h_z0res_vs_z0_->Write();
+  h_phires_vs_phi_->Write();
+  h_thetares_vs_theta_->Write();
+
+  h_nHits_vs_qoperr_->Write();
   
   outfile_->Close();  
   delete outfile_;

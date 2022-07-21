@@ -11,6 +11,7 @@
 
 //--- ROOT ---//
 #include "TGeoMatrix.h"
+#include "TTree.h"
 
 //--- Tracking I/O---//
 #include "Tracking/Sim/PropagatorStepWriter.h"
@@ -335,6 +336,12 @@ class TrackingGeometryMaker : public framework::Producer {
   TH1F* h_qop_;
   TH1F* h_nHits_;
 
+  // Ben: Trying to declare TTree t_p_ to resolve first error message
+  // TTree* t_p_;
+  // std::vector<float> vp1;
+  // Float_t vp1;
+
+
   TH1F* h_p_err_;
   TH1F* h_d0_err_;
   TH1F* h_z0_err_;
@@ -367,6 +374,30 @@ class TrackingGeometryMaker : public framework::Producer {
   TH2F* h_tgt_scoring_x_y_;
   TH1F* h_tgt_scoring_z_;
 
+  TH2F* h_pres_vs_p_;
+  TH2F* h_perr_vs_p_;
+  TH2F* h_ppull_vs_p_;
+  TH2F* h_qop_vs_p_;
+
+  TH2F* h_qoperr_vs_p_;
+  TH2F* h_d0err_vs_p_;
+  TH2F* h_z0err_vs_p_;
+  TH2F* h_phierr_vs_p_;
+  TH2F* h_thetaerr_vs_p_;
+
+  TH2F* h_qoperr_vs_qop_;
+  TH2F* h_d0err_vs_d0_;
+  TH2F* h_z0err_vs_z0_;
+  TH2F* h_phierr_vs_phi_;
+  TH2F* h_thetaerr_vs_theta_;
+
+  TH2F* h_qopres_vs_qop_;
+  TH2F* h_d0res_vs_d0_;
+  TH2F* h_z0res_vs_z0_;
+  TH2F* h_phires_vs_phi_;
+  TH2F* h_thetares_vs_theta_;
+
+  TH2F* h_nHits_vs_qoperr_;
 
   /// do smearing
   bool do_smearing_{false};
