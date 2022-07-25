@@ -4,7 +4,7 @@
 //for acts stuffs
 #include "Acts/MagneticField/ConstantBField.hpp"
 
-
+#include <cmath>
 #include <chrono>
 
 using namespace framework;
@@ -23,7 +23,7 @@ void validation_processor::onProcessStart(){
 ////Monitoring plots////
  //range in GeV//
  
-  // defining min/max for d0 and z0d 
+
   double d0min = -2;
   double d0max = 2;
   double z0min = -2;
@@ -31,12 +31,22 @@ void validation_processor::onProcessStart(){
 
   //Emrys to do, make "folders" for each category
 
+
+////  --  Primary Track Parameter Histos  --  ////
+
+
   //d0 histograms 
+  double d0min = -2;
+  double d0max = 2;
+  
   h_tagger_d0  = new TH1F("h_tagger_d0","h_tagger_d0",400, d0min, d0max);
   h_recoil_d0  = new TH1F("h_recoil_d0","h_recoil_d0",400, d0min, d0max);
   h_delta_d0   = new TH1F("h_delta_d0","h_delta_d0",400, d0min, d0max);
   
   //z0 histograms
+  double z0min = -2;
+  double z0max = 2
+  
   h_tagger_z0    = new TH1F("h_tagger_z0","h_tagger_z0",400, z0min, z0max);
   h_recoil_z0  = new TH1F("h_recoil_z0","h_recoil_z0",400, z0min, z0max);
   h_delta_z0   = new TH1F("h_delta_z0","h_delta_z0",400, z0min, z0max);
@@ -47,15 +57,14 @@ void validation_processor::onProcessStart(){
   h_delta_p  = new TH1F("h_delta_p","h_delta_p",200,-1,7);
 
   //phi histograms
-  h_tagger_phi   = new TH1F("h_tagger_phi","h_tagger_phi",400,-0.2,0.2);
-  h_recoil_phi   = new TH1F("h_recoil_phi","h_recoil_phi",400,-0.2,0.2);
-  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.2,0.2);
+  h_tagger_phi   = new TH1F("h_tagger_phi","h_tagger_phi",100,-3.15,3.15);
+  h_recoil_phi   = new TH1F("h_recoil_phi","h_recoil_phi",100,-3.15,3.15);
+  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.1,0.1);
 
   //theta histograms
-  h_tagger_theta = new TH1F("h_tagger_theta","h_tagger_theta",200,-0.1,0.1);
-  h_recoil_theta = new TH1F("h_recoil_theta","h_recoil_theta",200,-0.1,0.1);
+  h_tagger_theta = new TH1F("h_tagger_theta","h_tagger_theta",100,-3.15,3.15);
+  h_recoil_theta = new TH1F("h_recoil_theta","h_recoil_theta",100,-3.15,3.15);
   h_delta_theta  = new TH1F("h_delta_theta","h_delta_theta",200,-0.1,0.1);
-
 
   //Comparison Histograms 
   h_delta_d0_vs_recoil_p = new TH2F("h_delta_d0_vs_recoil_p","h_delta_d0_vs_recoil_p",200,0,5,400,-1,1);
@@ -64,46 +73,67 @@ void validation_processor::onProcessStart(){
   h_td0_vs_rd0 = new TH2F("h_td0_vs_rd0","h_td0_vs_rd0",100,-40,40,100,-40,40);
   h_tz0_vs_rz0 = new TH2F("h_tz0_vs_rz0","h_tz0_vs_rz0",100,-40,40,100,-40,40);
 
-
-
-
-  //  detector_ = &detector();
-  gctx_ = Acts::GeometryContext();
-  bctx_ = Acts::MagneticFieldContext();
-  
-  auto localToGlobalBin_xyz = [](std::array<size_t, 3> bins,
-                                 std::array<size_t, 3> sizes) {
-    return (bins[0] * (sizes[1] * sizes[2]) + bins[1] * sizes[2] + bins[2]);  //xyz - field space
-    //return (bins[1] * (sizes[2] * sizes[0]) + bins[2] * sizes[0] + bins[0]);    //zxy  
-  };
-  
-  InterpolatedMagneticField3 map = makeMagneticFieldMapXyzFromText(std::move(localToGlobalBin_xyz), bfieldMap_,
-                                                                   1. * Acts::UnitConstants::mm, //default scale for axes length
-                                                                   1000. * Acts::UnitConstants::T, //The map is in kT, so scale it to T
-                                                                   false, //not symmetrical
-                                                                   true //rotate the axes to tracking frame
-                                                                   );
-
-  Acts::Vector3 b_field(0.,0.,-1.5 * Acts::UnitConstants::T);
-  bField_ = std::make_shared<Acts::ConstantBField>(b_field);
-
-  sp_interpolated_bField_ = std::make_shared<InterpolatedMagneticField3>(std::move(map));;
-  
-  std::cout<<"Check if nullptr::"<<sp_interpolated_bField_.get()<<std::endl;
-  
-  auto&& stepper_const = Acts::EigenStepper<>{bField_};
-  auto&& stepper       = Acts::EigenStepper<>{sp_interpolated_bField_};  
-
-
-
-
-// Set up propagator with void navigator
-
-  //propagator_ = std::make_shared<VoidPropagator>(stepper);
  
-  if (debug_)
-    std::cout<<"Constant field propagator.."<<std::endl;
-  propagator_ = std::make_shared<VoidPropagator>(stepper_const);
+
+
+////   -- addl histograms --   ////
+
+
+//  QoP; done but on Ben's version
+
+
+//  transverse momemtums (p_x, p_y, p_z); 
+  h_tagger_px   = new TH1F("h_tagger_px","h_tagger_px",100,1,5); //expect peak centered on ~4GeV
+  h_tagger_py   = new TH1F("h_tagger_py","h_tagger_py",100,-1,1); //expected ~0 
+  h_tagger_pz   = new TH1F("h_tagger_pz","h_tagger_pz",100,-1,1); //expected ~0
+
+  h_recoil_px   = new TH1F("h_recoil_px","h_recoil_px",100,0,8); //expect SINGLE peak centered on ~4GeV
+  h_recoil_py   = new TH1F("h_recoil_py","h_recoil_py",100,-3.15,3.15); //expect 0
+  h_recoil_pz   = new TH1F("h_recoil_pz","h_recoil_pz",100,-3.15,3.15); //expect 0
+
+
+
+//  deltas between p_x., p_y;
+  h_delta_tpx_vs_tpy =  new TH1F("h_delta_tpx_vs_tpy","h_delta_tpx_vs_tpy",100,-2,8);
+  h_delta_rpx_vs_rpy =  new TH1F("h_delta_rpx_vs_rpy","h_delta_rpx_vs_rpy",100,-2,8);
+
+
+
+//  p_x^2 p_y^2; 
+  h_tagger_px2   = new TH1F("h_tagger_px2","h_tagger_px2",100,-2,20);
+//  h_tagger_py2   = new TH1F("h_tagger_py2","h_tagger_py2",100,-3.15,3.15);
+//  h_recoil_px2   = new TH1F("h_recoil_px2","h_recoil_px2",100,-3.15,3.15);
+//  h_recoil_px2   = new TH1F("h_recoil_py2","h_recoil_py2",100,-3.15,3.15);
+
+
+
+
+
+//  chi^2;
+  h_tagger_chi2 = new TH1F("h_tagger_chi2","h_tagger_chi2",100,-1,6);
+  h_recoil_chi2 = new TH1F("h_recoil_chi2","h_recoil_chi2",100,-1,6);
+
+
+//transverse momenta information
+  h_tagger_t_mom = new TH1F("h_tagger_t_mom","h_tagger_t_mom",100,-2,6);
+  h_recoil_t_mom = new TH1F("h_recoil_t_mom","h_recoil_t_mom",100,-2,6);
+  h_delta_t_mom  = new TH1F("h_delta_t_mom","h_delta_t_mom",100,-2,3);
+
+
+
+
+
+
+
+
+
+
+//  chi^2 / [degrees of freedom] (dof = number of hits - 5? );
+//  d_0, sig_d0 as function of momentum;
+//  z_0, sig_z0 as function of momentum;  
+//  p_t as function of number of hits 
+//  plot sigma QoP as functon of momenta using 1. covariance 2. momenta (Y plot error on P, X plot p) (Y sigma QoP, X plot P) 
+
 
   
 }
@@ -255,6 +285,45 @@ void validation_processor::onProcessEnd() {
   h_td0_vs_rd0->Write();
   h_tz0_vs_rz0->Write();
 
+  
+
+
+//adtnl plots 
+  //px,py,pz
+  h_tagger_px->Write();
+  h_tagger_py->Write();
+  h_tagger_pz->Write();
+
+  h_recoil_px->Write();
+  h_recoil_py->Write();
+  h_recoil_pz->Write();
+
+  //  deltas between p_x., p_y;
+  h_delta_tpx_vs_tpy->Write();
+  h_delta_rpx_vs_rpy->Write();
+  
+  //px^2 and py^2
+  h_tagger_px2->Write();
+//  h_tagger_py2->Write();
+//  h_recoil_px2->Write();
+//  h_recoil_py2->Write();
+
+  //chi2
+  h_tagger_chi2->Write();
+  h_recoil_chi2->Write();
+
+  //transverse momenta information
+
+
+  h_tagger_t_mom->Write();
+  h_recoil_t_mom->Write();
+  h_delta_t_mom->Write();;
+
+
+
+
+
+
 
 
   //closing the file
@@ -262,7 +331,7 @@ void validation_processor::onProcessEnd() {
   delete outfile;
   
 
-  std::cout<<"MONITORING PROCESSOR:: "<<this->getName()<<"   AVG Time/Event: " <<processing_time_ / nevents_ << " ms"<<std::endl;  
+  std::cout<<"PROCESSOR:: "<<this->getName()<<"   AVG Time/Event: " <<processing_time_ / nevents_ << " ms"<<std::endl;  
 }
 
 
@@ -341,18 +410,78 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
   h_tz0_vs_rz0->Fill(r_d0,t_z0);
 
 
-  //"pT"
-  //TODO Transverse momentum should obtained orthogonal to the B-Field direction
-  //This assumes to be along Z (which is not very accurate)
-
-  //std::vector<double> r_mom = r_trk.getMomentum();
-  //std::vector<double> t_mom = t_trk.getMomentum();
-
-  //I assume to have a single photon being emitted in the target: I use momentum conservation
-  //p_photon = p_beam - p_recoil
 
 
 
+  
+
+
+
+//addl plots 
+
+//tagger and recoil component wise momentum
+double t_px, t_py, t_pz, r_px, r_py, r_pz;
+
+
+//where .getMomentum comes from Track.h
+t_px = t_trk.getMomentum()[0]; 
+t_py = t_trk.getMomentum()[1];
+t_pz = t_trk.getMomentum()[2];
+
+r_px = r_trk.getMomentum()[0];
+r_py = r_trk.getMomentum()[1];
+r_pz = r_trk.getMomentum()[2];
+
+
+//Transverse Momentum --> Tp ~ sqrt(px^2 +py^2)
+  double t_px2, t_py2, r_px2, r_py2;
+  double tag_t_mom, rec_t_mom;
+
+  t_px2 = pow(t_px,2);
+  t_py2 = pow(t_py,2);
+  r_px2 = pow(r_px,2);
+  r_py2 = pow(r_py,2);
+
+  tag_t_mom = sqrt(t_px2 + t_py2);
+  rec_t_mom = sqrt(r_px2 + r_py2);
+
+
+  //px,py,pz
+  h_tagger_px->Fill(t_px);
+  h_tagger_py->Fill(t_py);
+  h_tagger_pz->Fill(t_pz);
+
+  h_recoil_px->Fill(r_px);
+  h_recoil_py->Fill(r_py);
+  h_recoil_pz->Fill(r_pz);
+
+  //  deltas between p_x., p_y;
+  h_delta_tpx_vs_tpy->Fill(t_px - t_py);
+  h_delta_rpx_vs_rpy->Fill(r_px - r_py);
+
+  //px^2 and py^2
+  h_tagger_px2->Fill(t_px2);
+//  h_tagger_py2->Fill(pow(t_py,2));
+//  h_recoil_px2->Fill(pow(r_px,2));
+//  h_recoil_py2->Fill(pow(r_py,2));
+
+
+  //transverse momentum
+  h_tagger_t_mom->Fill(tag_t_mom);
+  h_recoil_t_mom->Fill(rec_t_mom);
+
+  h_delta_t_mom->Fill(sqrt(tag_t_mom - rec_t_mom));
+
+  //chi2
+  double t_chi2, r_chi2;
+  t_chi2 = t_trk.getChi2();
+  r_chi2 = r_trk.getChi2();
+  h_tagger_chi2->Fill(t_chi2);
+  h_recoil_chi2->Fill(r_chi2);
+
+
+
+  //  std::cout<<"chi2sum="<<trajState.chi2Sum<<std::endl;
 
 
 
