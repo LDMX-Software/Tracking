@@ -6,25 +6,25 @@
 #include "Framework/EventProcessor.h"
 
 // --- Tracking --- //
-#include "Tracking/Event/Track.h"
+#include "Tracking/Event/Track.h" //pulling important parameter definitions form this boy
 #include "Tracking/Sim/BFieldXYZUtils.h"
 #include "Tracking/Sim/TrackingUtils.h"
+
 
 // --- ACTS --- //
 
 // Utils and definitions
-
 #include "Acts/Definitions/Units.hpp"
 #include "Acts/Definitions/Common.hpp"
+#include "Acts/Definitions/TrackParametrization.hpp"
+#include "Acts/EventData/TrackParameters.hpp"
 
 //// Magfield
-
 #include "Acts/MagneticField/MagneticFieldContext.hpp"
 #include "Acts/MagneticField/MagneticFieldProvider.hpp"
 #include "Acts/MagneticField/ConstantBField.hpp"
 
 //// Propagator
-
 #include "Acts/Propagator/EigenStepper.hpp"
 #include "Acts/Propagator/Propagator.hpp"
 
@@ -62,6 +62,11 @@ class validation_processor : public framework::Producer {
   void produce(framework::Event &event);
   void TaggerRecoilMonitoring(const std::vector<ldmx::Track>& TaggerTracks, const std::vector<ldmx::Track>& RecoilTracks);	
 
+
+////working through checklist
+
+  
+
  private:
 
   Acts::GeometryContext gctx_;
@@ -69,9 +74,42 @@ class validation_processor : public framework::Producer {
   
   bool debug_{false};
 
-  //Event counter
+  //Event counters
   int nevents_{0};
+//  int Tracker_nevents_{0};  
+//  int Recoil_nevents_{0};
+
+//// checklist information
   
+  //chi2
+  double chi2_{0};
+
+
+  std::vector<double> perigee_pars_{0.,0.,0.,0.,0.,0.};
+
+
+// this probably wont work 
+  std::vector<double> perigee_cov_;
+
+  //The perigee location
+  std::vector<double> perigee_{0.,0.,0.};
+
+  //The 3-momentum at the perigee
+  std::vector<double> momentum_{0.,0.,0.};
+
+  //The 3-position at the perigee
+  std::vector<double> position_{0.,0.,0.};
+
+
+
+
+
+
+
+
+
+
+
 
   //The interpolated bfield
   std::shared_ptr<InterpolatedMagneticField3> sp_interpolated_bField_;
@@ -89,7 +127,7 @@ class validation_processor : public framework::Producer {
   double processing_time_{0.};
 
 
-  //Monitoring histograms
+////   -- Monitoring Histograms --   ////
   
   //d0 histograms
   TH1F* h_tagger_d0;
@@ -123,6 +161,40 @@ class validation_processor : public framework::Producer {
 
   TH2F* h_td0_vs_rd0;
   TH2F* h_tz0_vs_rz0;
+
+
+//addl histos
+
+
+ TH1F* h_tagger_px;
+ TH1F* h_tagger_py;
+ TH1F* h_tagger_pz;
+
+
+ TH1F* h_recoil_px;
+ TH1F* h_recoil_py;
+ TH1F* h_recoil_pz;
+ 
+
+ TH1F* h_delta_tpx_vs_tpy;
+ TH1F* h_delta_rpx_vs_rpy;
+
+
+ TH1F* h_tagger_px2;
+// TH1F* h_tagger_py2;
+// TH1F* h_recoil_px2;
+// TH1F* h_recoil_py2;
+
+ TH1F* h_tagger_chi2;
+ TH1F* h_recoil_chi2;
+ 
+
+ //transverse momentum information 
+ TH1F*  h_tagger_t_mom; 
+ TH1F*  h_recoil_t_mom;
+ TH1F*  h_delta_t_mom;
+
+
 
  
 };
