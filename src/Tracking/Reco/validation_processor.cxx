@@ -22,13 +22,6 @@ void validation_processor::onProcessStart(){
 
 ////Monitoring plots////
  //range in GeV//
- 
-
-  double d0min = -2;
-  double d0max = 2;
-  double z0min = -2;
-  double z0max = 2;
-
   //Emrys to do, make "folders" for each category
 
 
@@ -45,7 +38,7 @@ void validation_processor::onProcessStart(){
   
   //z0 histograms
   double z0min = -2;
-  double z0max = 2
+  double z0max = 2;
   
   h_tagger_z0    = new TH1F("h_tagger_z0","h_tagger_z0",400, z0min, z0max);
   h_recoil_z0  = new TH1F("h_recoil_z0","h_recoil_z0",400, z0min, z0max);
