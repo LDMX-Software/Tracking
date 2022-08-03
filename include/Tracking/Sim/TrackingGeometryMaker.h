@@ -224,6 +224,11 @@ class TrackingGeometryMaker : public framework::Producer {
   bool debug_{false};
   int nevents_{0};
 
+  //Cut on reconstructed momentum
+  double p_cut_lower_{0.};
+  double p_cut_upper_{0.};
+
+
   //Processing time counter
   double processing_time_{0.};
     
@@ -398,6 +403,18 @@ class TrackingGeometryMaker : public framework::Producer {
   TH2F* h_thetares_vs_theta_;
 
   TH2F* h_nHits_vs_qoperr_;
+
+  TH2F* h_ptruth_vs_p_;
+
+  TH2F* h_pres_vs_ptruth_;
+  TH2F* h_ppull_vs_ptruth_;
+  TH2F* h_p_vs_ptruth_;
+  TH2F* h_d0res_vs_ptruth_;
+  TH2F* h_d0pull_vs_ptruth_;
+  TH2F* h_d0_vs_ptruth_;
+  TH2F* h_z0res_vs_ptruth_;
+  TH2F* h_z0pull_vs_ptruth_;
+  TH2F* h_z0_vs_ptruth_;
 
   /// do smearing
   bool do_smearing_{false};

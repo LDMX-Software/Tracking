@@ -287,7 +287,7 @@ void TrackingGeometryMaker::onProcessStart() {
 
   h_p_truth_      = new TH1F("p_truth",      "p_truth",600,0,6);
   h_d0_truth_     = new TH1F("d0_truth",     "d0_truth",100,-20,20);
-  h_z0_truth_     = new TH1F("z0_truth_",    "z0_truth",100,-50,50);
+  h_z0_truth_     = new TH1F("z0_truth",     "z0_truth",100,-50,50);
   h_phi_truth_    = new TH1F("phi_truth",    "phi_truth",200,-0.5,0.5);
   h_theta_truth_  = new TH1F("theta_truth`", "theta_truth",200,0.8,2.2);
   h_qop_truth_    = new TH1F("qop_truth","qop_truth",200,-10,10);
@@ -324,6 +324,18 @@ void TrackingGeometryMaker::onProcessStart() {
   h_thetares_vs_theta_= new TH2F("thetares_vs_theta", "thetares_vs_theta", 200, 1.4, 1.8, 200, -0.025, 0.025);
 
   h_nHits_vs_qoperr_  = new TH2F("nHits_vs_qoperr", "nHits_vs_qoperr", 200, 0, 0.15, 15, 0, 15);
+
+  h_ptruth_vs_p_      = new TH2F("ptruth_vs_p", "ptruth_vs_p", 200, 0, 6, 200, 0, 6);
+
+  h_pres_vs_ptruth_   = new TH2F("pres_vs_ptruth", "pres_vs_ptruth", 200, 0, 4, 200, -3.5, 1.5);
+  h_ppull_vs_ptruth_  = new TH2F("ppull_vs_ptruth", "ppull_vs_ptruth", 200, 0, 4, 200, -35, 5);
+  h_p_vs_ptruth_      = new TH2F("p_vs_ptruth", "p_vs_ptruth", 200, 0, 4, 200, 0, 6);
+  h_d0res_vs_ptruth_  = new TH2F("d0res_vs_ptruth", "d0res_vs_ptruth", 200, 0, 4, 200, -17, 17);
+  h_d0pull_vs_ptruth_ = new TH2F("d0pull_vs_ptruth", "d0pull_vs_ptruth", 200, 0, 4, 200, -1000, 1000);
+  h_d0_vs_ptruth_     = new TH2F("d0_vs_ptruth", "d0_vs_ptruth", 200, 0, 4, 200, -17, 17);
+  h_z0res_vs_ptruth_  = new TH2F("z0res_vs_ptruth", "z0res_vs_ptruth", 200, 0, 4, 200, -50, 50);
+  h_z0pull_vs_ptruth_ = new TH2F("z0pull_vs_ptruth", "z0pull_vs_ptruth", 200, 0, 4, 200, -300, 300);
+  h_z0_vs_ptruth_     = new TH2F("z0_vs_ptruth", "z0_vs_ptruth", 200, 0, 4, 200, -50, 50);
 }
 
 void TrackingGeometryMaker::produce(framework::Event &event) {
@@ -754,6 +766,16 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
     h_nHits_->Fill(trajState.nMeasurements);
         
     for (const auto& pair : ckf_result.fittedParameters) {
+
+      // Cut on reconstructed momentum, only allow tracks with momentum between p_cut_lower and p_cut_upper
+      if (p_cut_lower_ >= 0. && pair.second.absoluteMomentum() < p_cut_lower_) {
+        continue;
+      }
+
+      if (p_cut_upper_ > 0. && pair.second.absoluteMomentum() > p_cut_upper_) {
+        continue;
+      }
+
       //std::cout<<"Number of hits-on-track::" << (int) pair.first << std::endl;
 
 
@@ -815,6 +837,8 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       histo_p_pull_    ->Fill(resp / sigma_p);
 
       // Fill 2D histograms 
+    
+      
       h_pres_vs_p_    ->Fill(pair.second.absoluteMomentum(), resp);
       h_perr_vs_p_    ->Fill(pair.second.absoluteMomentum(), sigma_p);
       h_ppull_vs_p_   ->Fill(pair.second.absoluteMomentum(), resp / sigma_p);
@@ -839,6 +863,19 @@ void TrackingGeometryMaker::produce(framework::Event &event) {
       h_thetares_vs_theta_->Fill(pair.second.get<Acts::BoundIndices::eBoundTheta>(),  restheta);
 
       h_nHits_vs_qoperr_  ->Fill(sigma_qop, trajState.nMeasurements);
+
+      h_ptruth_vs_p_      ->Fill(pair.second.absoluteMomentum(), startParameters.at(0).absoluteMomentum());
+
+      h_pres_vs_ptruth_   ->Fill(startParameters.at(0).absoluteMomentum(), resp);
+      h_ppull_vs_ptruth_  ->Fill(startParameters.at(0).absoluteMomentum(), resp / sigma_p);
+      h_p_vs_ptruth_      ->Fill(startParameters.at(0).absoluteMomentum(), pair.second.absoluteMomentum());
+      h_d0res_vs_ptruth_  ->Fill(startParameters.at(0).absoluteMomentum(), resd0);
+      h_d0pull_vs_ptruth_ ->Fill(startParameters.at(0).absoluteMomentum(), resd0 / sigma_d0);
+      h_d0_vs_ptruth_     ->Fill(startParameters.at(0).absoluteMomentum(), pair.second.get<Acts::BoundIndices::eBoundLoc0>());
+      h_z0res_vs_ptruth_  ->Fill(startParameters.at(0).absoluteMomentum(), resz0);
+      h_z0pull_vs_ptruth_ ->Fill(startParameters.at(0).absoluteMomentum(), resz0 / sigma_z0);
+      h_z0_vs_ptruth_     ->Fill(startParameters.at(0).absoluteMomentum(), pair.second.get<Acts::BoundIndices::eBoundLoc1>());
+      
     }
 
     //Create a track object
@@ -1171,6 +1208,18 @@ void TrackingGeometryMaker::onProcessEnd() {
   h_thetares_vs_theta_->Write();
 
   h_nHits_vs_qoperr_->Write();
+
+  h_ptruth_vs_p_->Write();
+
+  h_pres_vs_ptruth_->Write();
+  h_ppull_vs_ptruth_->Write();
+  h_p_vs_ptruth_->Write();
+  h_d0res_vs_ptruth_->Write();
+  h_d0pull_vs_ptruth_->Write();
+  h_d0_vs_ptruth_->Write();
+  h_z0res_vs_ptruth_->Write();
+  h_z0pull_vs_ptruth_->Write();
+  h_z0_vs_ptruth_->Write();
   
   outfile_->Close();  
   delete outfile_;
@@ -1591,6 +1640,10 @@ void TrackingGeometryMaker::configure(framework::config::Parameters &parameters)
   perigee_location_     = parameters.getParameter<std::vector<double> >("perigee_location", {0.,0.,0.});
   debug_                = parameters.getParameter<bool>("debug",false);
   hit_collection_       = parameters.getParameter<std::string>("hit_collection","TaggerSimHits");
+
+  // Cut on reconstructed momentum (only accept tracks between p_cut_lower and p_cut_upper)
+  p_cut_lower_          = parameters.getParameter<double>("p_cut_lower",0.);
+  p_cut_upper_          = parameters.getParameter<double>("p_cut_upper",0.);
 
   removeStereo_         = parameters.getParameter<bool>("removeStereo",false);
   if (removeStereo_)
