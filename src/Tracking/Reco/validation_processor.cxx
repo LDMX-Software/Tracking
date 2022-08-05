@@ -21,9 +21,6 @@ validation_processor::~validation_processor() {}
 void validation_processor::onProcessStart(){
 
 ////Monitoring plots////
- //range in GeV//
-  //Emrys to do, make "folders" for each category
-
 
 ////  --  Primary Track Parameter Histos  --  ////
 
@@ -45,19 +42,19 @@ void validation_processor::onProcessStart(){
   h_delta_z0   = new TH1F("h_delta_z0","h_delta_z0",400, z0min, z0max);
 
   //p histograms  
-  h_tagger_p = new TH1F("h_tagger_p","h_tagger_p",200,-1,7);
-  h_recoil_p = new TH1F("h_recoil_p","h_recoil_p",200,-1,7);
-  h_delta_p  = new TH1F("h_delta_p","h_delta_p",200,-1,7);
+  h_tagger_p = new TH1F("h_tagger_p","h_tagger_p",200,-2,5);
+  h_recoil_p = new TH1F("h_recoil_p","h_recoil_p",200,1,6);
+  h_delta_p  = new TH1F("h_delta_p","h_delta_p",200,-3,3);
 
   //phi histograms
   h_tagger_phi   = new TH1F("h_tagger_phi","h_tagger_phi",100,-3.15,3.15);
   h_recoil_phi   = new TH1F("h_recoil_phi","h_recoil_phi",100,-3.15,3.15);
-  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.1,0.1);
+  h_delta_phi    = new TH1F("h_delta_phi","h_delta_phi",400,-0.05,0.05);
 
   //theta histograms
   h_tagger_theta = new TH1F("h_tagger_theta","h_tagger_theta",100,-3.15,3.15);
   h_recoil_theta = new TH1F("h_recoil_theta","h_recoil_theta",100,-3.15,3.15);
-  h_delta_theta  = new TH1F("h_delta_theta","h_delta_theta",200,-0.1,0.1);
+  h_delta_theta  = new TH1F("h_delta_theta","h_delta_theta",200,-0.02,0.02);
 
   //Comparison Histograms 
   h_delta_d0_vs_recoil_p = new TH2F("h_delta_d0_vs_recoil_p","h_delta_d0_vs_recoil_p",200,0,5,400,-1,1);
@@ -76,24 +73,18 @@ void validation_processor::onProcessStart(){
 
 
 //  transverse momemtums (p_x, p_y, p_z); 
-  h_tagger_px   = new TH1F("h_tagger_px","h_tagger_px",100,1,5); //expect peak centered on ~4GeV
-  h_tagger_py   = new TH1F("h_tagger_py","h_tagger_py",100,-1,1); //expected ~0 
-  h_tagger_pz   = new TH1F("h_tagger_pz","h_tagger_pz",100,-1,1); //expected ~0
+  h_tagger_px   = new TH1F("h_tagger_px","h_tagger_px",400,1,5); //expect peak centered on ~4GeV
+  h_tagger_py   = new TH1F("h_tagger_py","h_tagger_py",400,-0.15, 0.15); //expected ~0 
+  h_tagger_pz   = new TH1F("h_tagger_pz","h_tagger_pz",400,-0.15, 0.15); //expected ~0
 
-  h_recoil_px   = new TH1F("h_recoil_px","h_recoil_px",100,0,8); //expect SINGLE peak centered on ~4GeV
-  h_recoil_py   = new TH1F("h_recoil_py","h_recoil_py",100,-3.15,3.15); //expect 0
-  h_recoil_pz   = new TH1F("h_recoil_pz","h_recoil_pz",100,-3.15,3.15); //expect 0
-
-
-
-//  deltas between p_x., p_y;
-  h_delta_tpx_vs_tpy =  new TH1F("h_delta_tpx_vs_tpy","h_delta_tpx_vs_tpy",100,-2,8);
-  h_delta_rpx_vs_rpy =  new TH1F("h_delta_rpx_vs_rpy","h_delta_rpx_vs_rpy",100,-2,8);
+  h_recoil_px   = new TH1F("h_recoil_px","h_recoil_px",400,0,6); //expect SINGLE peak centered on ~4GeV
+  h_recoil_py   = new TH1F("h_recoil_py","h_recoil_py",400,-0.15,0.15); //expect 0
+  h_recoil_pz   = new TH1F("h_recoil_pz","h_recoil_pz",400,-0.15,0.15); //expect 0
 
 
 
 //  p_x^2 p_y^2; 
-  h_tagger_px2   = new TH1F("h_tagger_px2","h_tagger_px2",100,-2,20);
+  h_tagger_px2   = new TH1F("h_tagger_px2","h_tagger_px2",400,-2,20);
 //  h_tagger_py2   = new TH1F("h_tagger_py2","h_tagger_py2",100,-3.15,3.15);
 //  h_recoil_px2   = new TH1F("h_recoil_px2","h_recoil_px2",100,-3.15,3.15);
 //  h_recoil_px2   = new TH1F("h_recoil_py2","h_recoil_py2",100,-3.15,3.15);
@@ -103,17 +94,19 @@ void validation_processor::onProcessStart(){
 
 
 //  chi^2;
-  h_tagger_chi2 = new TH1F("h_tagger_chi2","h_tagger_chi2",100,-1,6);
-  h_recoil_chi2 = new TH1F("h_recoil_chi2","h_recoil_chi2",100,-1,6);
+  h_tagger_chi2 = new TH1F("h_tagger_chi2","h_tagger_chi2",100,0,12);
+  h_recoil_chi2 = new TH1F("h_recoil_chi2","h_recoil_chi2",100,0,12);
 
 
 //transverse momenta information
-  h_tagger_t_mom = new TH1F("h_tagger_t_mom","h_tagger_t_mom",100,-2,6);
-  h_recoil_t_mom = new TH1F("h_recoil_t_mom","h_recoil_t_mom",100,-2,6);
-  h_delta_t_mom  = new TH1F("h_delta_t_mom","h_delta_t_mom",100,-2,3);
+  h_tagger_t_mom = new TH1F("h_tagger_t_mom","h_tagger_t_mom",400, -0.1, 0.1);
+  h_recoil_t_mom = new TH1F("h_recoil_t_mom","h_recoil_t_mom",400, -0.1, 0.1);
+  h_delta_t_mom  = new TH1F("h_delta_t_mom","h_delta_t_mom",400,-2,2);
 
 
-
+//number of hits on track 
+  h_tag_hits  = new TH1F("h_tag_hits","h_tag_hits",400, 0, 15);
+  h_rec_hits  = new TH1F("h_rec_hits","h_rec_hits",400, 0, 15);
 
 
 
@@ -124,7 +117,14 @@ void validation_processor::onProcessStart(){
 //  chi^2 / [degrees of freedom] (dof = number of hits - 5? );
 //  d_0, sig_d0 as function of momentum;
 //  z_0, sig_z0 as function of momentum;  
-//  p_t as function of number of hits 
+//  p_t as function of number of hits
+
+
+
+h_tag_nhits_vs_pt = new TH2F("h_tag_nhits_vs_pt","h_tag_nhits_vs_pt",400,0,15,400,0,5);
+h_rec_nhits_vs_pt = new TH2F("h_rec_nhits_vs_pt","h_rec_nhits_vs_pt",400,0,15,400,0,5);
+
+ 
 //  plot sigma QoP as functon of momenta using 1. covariance 2. momenta (Y plot error on P, X plot p) (Y sigma QoP, X plot P) 
 
 
@@ -292,8 +292,8 @@ void validation_processor::onProcessEnd() {
   h_recoil_pz->Write();
 
   //  deltas between p_x., p_y;
-  h_delta_tpx_vs_tpy->Write();
-  h_delta_rpx_vs_rpy->Write();
+//  h_delta_tpx_tpy->Write();
+//  h_delta_rpx_rpy->Write();
   
   //px^2 and py^2
   h_tagger_px2->Write();
@@ -313,11 +313,13 @@ void validation_processor::onProcessEnd() {
   h_delta_t_mom->Write();;
 
 
+//number of hits on track
+  h_tag_hits->Write();
+  h_rec_hits->Write();
 
-
-
-
-
+//pt as function of nhits
+  h_tag_nhits_vs_pt->Write();
+  h_rec_nhits_vs_pt->Write();
 
   //closing the file
   outfile->Close();
@@ -404,12 +406,6 @@ void validation_processor::TaggerRecoilMonitoring(const std::vector<ldmx::Track>
 
 
 
-
-
-  
-
-
-
 //addl plots 
 
 //tagger and recoil component wise momentum
@@ -426,17 +422,18 @@ r_py = r_trk.getMomentum()[1];
 r_pz = r_trk.getMomentum()[2];
 
 
-//Transverse Momentum --> Tp ~ sqrt(px^2 +py^2)
-  double t_px2, t_py2, r_px2, r_py2;
+//Transverse Momentum --> Tp ~ sqrt(py^2 +pz^2)
+  double t_px2, t_py2, t_pz2,  r_px2, r_py2, r_pz2;
   double tag_t_mom, rec_t_mom;
 
   t_px2 = pow(t_px,2);
   t_py2 = pow(t_py,2);
+  t_pz2 = pow(t_pz,2);
   r_px2 = pow(r_px,2);
   r_py2 = pow(r_py,2);
-
-  tag_t_mom = sqrt(t_px2 + t_py2);
-  rec_t_mom = sqrt(r_px2 + r_py2);
+  r_py2 = pow(r_pz,2);
+  tag_t_mom = sqrt(t_pz2 + t_py2);
+  rec_t_mom = sqrt(r_pz2 + r_py2);
 
 
   //px,py,pz
@@ -449,8 +446,8 @@ r_pz = r_trk.getMomentum()[2];
   h_recoil_pz->Fill(r_pz);
 
   //  deltas between p_x., p_y;
-  h_delta_tpx_vs_tpy->Fill(t_px - t_py);
-  h_delta_rpx_vs_rpy->Fill(r_px - r_py);
+//  h_delta_tpx_tpy->Fill(t_px - t_py);
+//  h_delta_rpx_rpy->Fill(r_px - r_py);
 
   //px^2 and py^2
   h_tagger_px2->Fill(t_px2);
@@ -473,8 +470,29 @@ r_pz = r_trk.getMomentum()[2];
   h_recoil_chi2->Fill(r_chi2);
 
 
+//// ----- add number of hits on track plottttttttttt
 
-  //  std::cout<<"chi2sum="<<trajState.chi2Sum<<std::endl;
+  double tag_hit, rec_hit;
+  tag_hit = t_trk.getNhits();
+  rec_hit = r_trk.getNhits();
+
+
+  h_tag_hits->Fill(tag_hit);
+  h_rec_hits->Fill(rec_hit);  
+
+
+
+
+// hits on track vs t momentum
+  h_tag_nhits_vs_pt->Fill(tag_hit, tag_t_mom);
+  h_rec_nhits_vs_pt->Fill(rec_hit, rec_t_mom);
+
+
+//// add QoP
+//// want to do some residuals stuff 
+
+
+ //  std::cout<<"chi2sum="<<trajState.chi2Sum<<std::endl;
 
 
 
