@@ -164,7 +164,7 @@ class validation_processor : public framework::Producer {
 
 
 //addl histos
-
+// component wise momentum
 
  TH1F* h_tagger_px;
  TH1F* h_tagger_py;
@@ -176,10 +176,12 @@ class validation_processor : public framework::Producer {
  TH1F* h_recoil_pz;
  
 
- TH1F* h_delta_tpx_vs_tpy;
- TH1F* h_delta_rpx_vs_rpy;
+//  TH1F* h_delta_tpx_tpy;
+//  TH1F* h_delta_rpx_rpy;
 
 
+
+//squared
  TH1F* h_tagger_px2;
 // TH1F* h_tagger_py2;
 // TH1F* h_recoil_px2;
@@ -193,6 +195,14 @@ class validation_processor : public framework::Producer {
  TH1F*  h_tagger_t_mom; 
  TH1F*  h_recoil_t_mom;
  TH1F*  h_delta_t_mom;
+
+//number of hits on track
+  TH1F* h_tag_hits;
+  TH1F* h_rec_hits;
+
+//nhits vs transverse mom
+TH2F*  h_tag_nhits_vs_pt;
+TH2F*  h_rec_nhits_vs_pt;
 
 
 
