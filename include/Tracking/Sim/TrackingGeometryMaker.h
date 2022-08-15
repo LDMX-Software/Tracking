@@ -11,6 +11,7 @@
 
 //--- ROOT ---//
 #include "TGeoMatrix.h"
+#include "TTree.h"
 
 //--- Tracking I/O---//
 #include "Tracking/Sim/PropagatorStepWriter.h"
@@ -114,9 +115,9 @@ using ActionList = Acts::ActionList<Acts::detail::SteppingLogger, Acts::Material
 using AbortList = Acts::AbortList<Acts::EndOfWorldReached>;
 using Propagator = Acts::Propagator<Acts::EigenStepper<>, Acts::Navigator>;
 
-
-using PropagatorOptions =
-    Acts::DenseStepperPropagatorOptions<ActionList, AbortList>;
+//?!
+//using PropagatorOptions =
+//    Acts::DenseStepperPropagatorOptions<ActionList, AbortList>;
 
 namespace tracking {
 namespace sim {
@@ -223,18 +224,17 @@ class TrackingGeometryMaker : public framework::Producer {
   bool debug_{false};
   int nevents_{0};
 
+  //Cut on reconstructed momentum
+  double p_cut_lower_{0.};
+  double p_cut_upper_{0.};
+
+
   //Processing time counter
   double processing_time_{0.};
-  
+    
+  //--- Smearing ---//
 
-  //--- Propagator Tests ---//
-
-  //Random number generator
-  int ntests_{0};
-  std::vector<double> phi_range_,theta_range_;
   std::default_random_engine generator_;
-  std::shared_ptr<std::uniform_real_distribution<double> > uniform_phi_;
-  std::shared_ptr<std::uniform_real_distribution<double> > uniform_theta_;
   std::shared_ptr<std::normal_distribution<float>> normal_;
 
   //Constant BField
@@ -242,12 +242,15 @@ class TrackingGeometryMaker : public framework::Producer {
   //Use constant bfield
   bool const_b_field_{true};
 
-  //Transverse Momentum
-  double pt_{1.};
-  //d0 and z0 are drawn from a gaussian distribution with these resolutions.
-  double d0sigma_{1.};
-  double z0sigma_{1.};
- 
+  //Remove stereo measurements
+  bool removeStereo_{false};
+
+  //Use 2d measurements instead of 1D
+  bool use1Dmeasurements_{true};
+  
+  //Minimum number of hits on tracks
+  int minHits_{7};
+  
   //Stepping size (in mm)
   double propagator_step_size_{200.};
   int propagator_maxSteps_{1000};
@@ -270,7 +273,14 @@ class TrackingGeometryMaker : public framework::Producer {
   
   int trackID_{-1};
   int pdgID_{11};
+
+  //Mass for the propagator hypothesis in MeV
+  double mass_{0.511};
   
+
+  //Refits
+  bool kfRefit_{false};
+  bool gsfRefit_{false};
   
   //The seed track collection
   std::string seed_coll_name_{"seedTracks"};
@@ -293,9 +303,6 @@ class TrackingGeometryMaker : public framework::Producer {
                         Acts::detail::VoidAuctioneer>,
                       Acts::Navigator> > >  gsf_;
   
-  //The options
-  std::shared_ptr<PropagatorOptions> options_;
-  
   //The propagator steps writer
   std::shared_ptr<PropagatorStepWriter> writer_;
 
@@ -317,6 +324,14 @@ class TrackingGeometryMaker : public framework::Producer {
   TH1F* histo_phi_;
   TH1F* histo_theta_;
   TH1F* histo_qop_;
+
+
+  TH1F* histo_p_pull_;
+  TH1F* histo_d0_pull_;
+  TH1F* histo_z0_pull_;
+  TH1F* histo_phi_pull_;
+  TH1F* histo_theta_pull_;
+  TH1F* histo_qop_pull_;
   
   TH1F* h_p_;
   TH1F* h_d0_;
@@ -325,6 +340,19 @@ class TrackingGeometryMaker : public framework::Producer {
   TH1F* h_theta_;
   TH1F* h_qop_;
   TH1F* h_nHits_;
+
+  // Ben: Trying to declare TTree t_p_ to resolve first error message
+  // TTree* t_p_;
+  // std::vector<float> vp1;
+  // Float_t vp1;
+
+
+  TH1F* h_p_err_;
+  TH1F* h_d0_err_;
+  TH1F* h_z0_err_;
+  TH1F* h_phi_err_;
+  TH1F* h_theta_err_;
+  TH1F* h_qop_err_;
 
   TH1F* h_p_refit_;
   TH1F* h_d0_refit_;
@@ -351,6 +379,42 @@ class TrackingGeometryMaker : public framework::Producer {
   TH2F* h_tgt_scoring_x_y_;
   TH1F* h_tgt_scoring_z_;
 
+  TH2F* h_pres_vs_p_;
+  TH2F* h_perr_vs_p_;
+  TH2F* h_ppull_vs_p_;
+  TH2F* h_qop_vs_p_;
+
+  TH2F* h_qoperr_vs_p_;
+  TH2F* h_d0err_vs_p_;
+  TH2F* h_z0err_vs_p_;
+  TH2F* h_phierr_vs_p_;
+  TH2F* h_thetaerr_vs_p_;
+
+  TH2F* h_qoperr_vs_qop_;
+  TH2F* h_d0err_vs_d0_;
+  TH2F* h_z0err_vs_z0_;
+  TH2F* h_phierr_vs_phi_;
+  TH2F* h_thetaerr_vs_theta_;
+
+  TH2F* h_qopres_vs_qop_;
+  TH2F* h_d0res_vs_d0_;
+  TH2F* h_z0res_vs_z0_;
+  TH2F* h_phires_vs_phi_;
+  TH2F* h_thetares_vs_theta_;
+
+  TH2F* h_nHits_vs_qoperr_;
+
+  TH2F* h_ptruth_vs_p_;
+
+  TH2F* h_pres_vs_ptruth_;
+  TH2F* h_ppull_vs_ptruth_;
+  TH2F* h_p_vs_ptruth_;
+  TH2F* h_d0res_vs_ptruth_;
+  TH2F* h_d0pull_vs_ptruth_;
+  TH2F* h_d0_vs_ptruth_;
+  TH2F* h_z0res_vs_ptruth_;
+  TH2F* h_z0pull_vs_ptruth_;
+  TH2F* h_z0_vs_ptruth_;
 
   /// do smearing
   bool do_smearing_{false};

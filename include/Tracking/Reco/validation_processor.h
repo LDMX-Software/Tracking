@@ -63,58 +63,19 @@ class validation_processor : public framework::Producer {
   void TaggerRecoilMonitoring(const std::vector<ldmx::Track>& TaggerTracks, const std::vector<ldmx::Track>& RecoilTracks);	
 
 
-////working through checklist
 
-  
 
  private:
-
-  Acts::GeometryContext gctx_;
-  Acts::MagneticFieldContext bctx_;
   
   bool debug_{false};
 
   //Event counters
   int nevents_{0};
-//  int Tracker_nevents_{0};  
-//  int Recoil_nevents_{0};
+  //  int Tracker_nevents_{0};  
+  //  int Recoil_nevents_{0};
 
-//// checklist information
-  
   //chi2
   double chi2_{0};
-
-
-  std::vector<double> perigee_pars_{0.,0.,0.,0.,0.,0.};
-
-
-// this probably wont work 
-  std::vector<double> perigee_cov_;
-
-  //The perigee location
-  std::vector<double> perigee_{0.,0.,0.};
-
-  //The 3-momentum at the perigee
-  std::vector<double> momentum_{0.,0.,0.};
-
-  //The 3-position at the perigee
-  std::vector<double> position_{0.,0.,0.};
-
-
-
-
-
-
-
-
-
-
-
-
-  //The interpolated bfield
-  std::shared_ptr<InterpolatedMagneticField3> sp_interpolated_bField_;
-  std::shared_ptr<Acts::ConstantBField> bField_;
-  std::string bfieldMap_;
 
   //Track collection name
   std::string trk_c_name_1{"TaggerTracks"};
@@ -127,8 +88,12 @@ class validation_processor : public framework::Producer {
   double processing_time_{0.};
 
 
-////   -- Monitoring Histograms --   ////
-  
+  ////   -- Monitoring Histograms --   ////
+ 
+  //Initialize histogram maps for convenient access/saving 
+  //  std::map<std::string,TH1F*> histos1d_;
+  //  std::map<std::string,TH2F*> histos2d_;
+ 
   //d0 histograms
   TH1F* h_tagger_d0;
   TH1F* h_recoil_d0;
@@ -154,7 +119,6 @@ class validation_processor : public framework::Producer {
   TH1F* h_recoil_theta;
   TH1F* h_delta_theta;
   
-
   // Comparitive Histograms 
   TH2F* h_delta_d0_vs_recoil_p;
   TH2F* h_delta_z0_vs_recoil_p;
@@ -163,50 +127,41 @@ class validation_processor : public framework::Producer {
   TH2F* h_tz0_vs_rz0;
 
 
-//addl histos
-// component wise momentum
+  //addl histos
+  // component wise momentum
 
- TH1F* h_tagger_px;
- TH1F* h_tagger_py;
- TH1F* h_tagger_pz;
-
-
- TH1F* h_recoil_px;
- TH1F* h_recoil_py;
- TH1F* h_recoil_pz;
- 
-
-//  TH1F* h_delta_tpx_tpy;
-//  TH1F* h_delta_rpx_rpy;
+  TH1F* h_tagger_px;
+  TH1F* h_tagger_py;
+  TH1F* h_tagger_pz;
 
 
+  TH1F* h_recoil_px;
+  TH1F* h_recoil_py;
+  TH1F* h_recoil_pz;
 
-//squared
- TH1F* h_tagger_px2;
-// TH1F* h_tagger_py2;
-// TH1F* h_recoil_px2;
-// TH1F* h_recoil_py2;
 
- TH1F* h_tagger_chi2;
- TH1F* h_recoil_chi2;
- 
+  //squared
+  TH1F* h_tagger_px2;
+  // TH1F* h_tagger_py2;
+  // TH1F* h_recoil_px2;
+  // TH1F* h_recoil_py2;
 
- //transverse momentum information 
- TH1F*  h_tagger_t_mom; 
- TH1F*  h_recoil_t_mom;
- TH1F*  h_delta_t_mom;
+  TH1F* h_tagger_chi2;
+  TH1F* h_recoil_chi2;
 
-//number of hits on track
+  //transverse momentum information 
+  TH1F*  h_tagger_t_mom; 
+  TH1F*  h_recoil_t_mom;
+  TH1F*  h_delta_t_mom;
+
+  //number of hits on track
   TH1F* h_tag_hits;
   TH1F* h_rec_hits;
 
-//nhits vs transverse mom
-TH2F*  h_tag_nhits_vs_pt;
-TH2F*  h_rec_nhits_vs_pt;
+  //nhits vs transverse mom
+  TH2F*  h_tag_nhits_vs_pt;
+  TH2F*  h_rec_nhits_vs_pt;
 
-
-
- 
 };
 
                   

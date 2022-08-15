@@ -11,6 +11,7 @@ p.detector = '/Users/benjaminlawrence-sanderson/workdir/projects/LDMX/sw/ldmx-sw
 from LDMX.Tracking import tracking_geo
 from LDMX.Tracking import tracking_vtx
 from LDMX.Tracking import tracking_truthseeder
+from LDMX.Tracking import tracking_validate
 
 #Truth seeder - electrons
 ts_ele               = tracking_truthseeder.TruthSeedProcessor()
@@ -21,28 +22,33 @@ ts_ele.scoring_hits  = "TargetScoringPlaneHits"
 ts_ele.z_min         = 4.4
 ts_ele.track_id      = 1
 #ts_ele.p_cut         = 3970. # In MeV
-ts_ele.p_cut         = 3970. # In MeV
+# ts_ele.p_cut         = 3980. # In MeV
 ts_ele.pz_cut        = 0.
+# ts_ele.p_cutEcal     = 3950. # In MeV
 
+if len(sys.argv) == 1:
+    ValueError("No smearing value. ")
 
 uSmearing = float(sys.argv[1])  #mm      previously 0.006
 vSmearing = 0.1    #mm
 
-print(f'Using uSmearing = {uSmearing}')
+print(f'Using uSmearing = {uSmearing} mm')
 
 geo  = tracking_geo.TrackingGeometryMaker("Recoil_TrackFinder")
 geo.dumpobj = 0
 
 #propagator tests
 #####
-geo.ntests = 0#10  #dropped
-geo.phi_range   = [-0.99*math.pi, -1*math.pi]  #dropped
-geo.theta_range = [0.4 * math.pi, 0.6 * math.pi] #dropped
-geo.pt = 4. #dropped
-geo.d0sigma = 0.1  #dropped
-geo.z0sigma = 0.1  #dropped
+geo.ntests          = 0#10  #dropped
+geo.phi_range       = [-0.99*math.pi, -1*math.pi]  #dropped
+geo.theta_range     = [0.4 * math.pi, 0.6 * math.pi] #dropped
+geo.pt              = 4. #dropped
+geo.d0sigma         = 0.1  #dropped
+geo.z0sigma         = 0.1  #dropped
 # geo.steps_file_path = "./recoil_evt_display.root"  #dropped
 geo.perigee_location = [-700.,-27.926,0.0] #Generated electrons origin  #dropped
+geo.p_cut_lower     = 0.    # GeV
+geo.p_cut_upper     = 0.   # tried 1.2 # GeV
 
 #### e     ggg
 
@@ -76,7 +82,8 @@ geo.sigma_u = uSmearing
 geo.sigma_v = vSmearing
 geo.trackID = 1
 geo.pdgID = 11
-
+geo.removeStereo = False
+geo.minHits = 6
 
 
 geo_tagger  = tracking_geo.TrackingGeometryMaker("Tagger_TrackFinder")
@@ -110,7 +117,7 @@ geo_tagger.hit_collection="TaggerSimHits"
 geo_tagger.seed_coll_name = "TaggerTruthSeeds"
 geo_tagger.use_extrapolate_location = True  #false not supported anymore
 geo_tagger.extrapolate_location  = [0.,0.,0.]  #ignored if use_extrapolate_location is False
-geo_tagger.use_seed_perigee = False
+geo_tagger.use_seed_perigee = True
 geo_tagger.out_trk_collection = "TaggerTracks"
 
 #smear the hits used for finding/fitting
@@ -127,6 +134,15 @@ geo_tagger.pdgID = 11
 # vtx.debug = False
 
 
+# bugger = tracking_validate.validation_processor()
+# bugger.dumpobj = 0
+
+# #change to True for debugging
+# bugger.debug = False
+
+
+
+
 #Match the recoil track to the tagger track and get the photon direction / momentum estimate
 
 # temp: now just running true seedings and recoil reconstruction
@@ -134,6 +150,7 @@ p.sequence = [ts_ele, geo]
 
 print(p.sequence)
 
+# p.inputFiles = [os.environ["LDMX_BASE"]+"/data_ldmx/single_e/single_ele_tagger.root"]
 p.inputFiles = [
     os.environ["LDMX_BASE"]+"/data_ldmx/single_e/mc_v12-4GeV-1e-inclusive_run10001_t1636673834.root",
     os.environ["LDMX_BASE"]+"/data_ldmx/single_e/mc_v12-4GeV-1e-inclusive_run10014_t1636673703.root",
@@ -209,7 +226,7 @@ p.inputFiles = [
 print(p.inputFiles)
 
 p.keep = [
-    "drop .*SimHits.*", #drop all sim hits
+    # "drop .*SimHits.*", #drop all sim hits
     "drop .*Ecal.*", #drop all ecal (Digis are not removed)
 #    "drop .*Magnet*",
     "drop .*Hcal.*",

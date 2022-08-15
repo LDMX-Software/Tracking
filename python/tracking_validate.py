@@ -2,6 +2,9 @@ import os
 #from LDMX.Framework import ldmxcfg
 from LDMX.Framework.ldmxcfg import Producer
 
+
+#was from LDMX.Framework.ldmxcfg 
+
 #This class produces validation plots from a track collection.
 class validation_processor(Producer) :
 
