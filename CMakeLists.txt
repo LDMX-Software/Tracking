@@ -38,6 +38,8 @@ if(BUILD_EVENT_ONLY)
      return()
 endif()
 
+find_package(Eigen3 REQUIRED NO_MODULE)
+
 file(GLOB SRC_FILES CONFIGURE_DEPENDS 
 	  ${PROJECT_SOURCE_DIR}/src/Tracking/Sim/[a-zA-z]*.cxx
 )
@@ -45,6 +47,10 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS
 setup_library(module Tracking
               dependencies Framework::Configure 
                            Framework::Framework 
+                           Eigen3::Eigen  
               sources ${SRC_FILES})
+
+
+setup_test(dependencies Tracking::Tracking)
 
 setup_python(package_name ${PYTHON_PACKAGE_NAME}/Tracking)
