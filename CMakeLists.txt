@@ -42,6 +42,7 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 
 file(GLOB SRC_FILES CONFIGURE_DEPENDS 
 	  ${PROJECT_SOURCE_DIR}/src/Tracking/Sim/[a-zA-z]*.cxx
+      ${PROJECT_SOURCE_DIR}/src/Tracking/geo/[a-zA-Z]*.cxx
 )
 
 setup_library(module Tracking
