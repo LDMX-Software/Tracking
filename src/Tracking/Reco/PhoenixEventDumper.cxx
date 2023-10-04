@@ -48,6 +48,8 @@ void PhoenixEventDumper::onNewRun(const ldmx::RunHeader& rh) {
 
 void PhoenixEventDumper::configure(framework::config::Parameters &parameters) {
 
+  outfilename_ = parameters.getParameter<std::string>("outfilename","event.json");
+  
   field_map_ = parameters.getParameter<std::string>("field_map");
   
   TaggerTracks_ = parameters.getParameter<std::string>("taggerTracks","");
@@ -153,14 +155,12 @@ void PhoenixEventDumper::produce(framework::Event & event) {
 
   for (auto rmeas : rms) {
 
-    auto meas_pos  = rmeas.getGlobalPosition();
-    std::vector<float> jloc{meas_pos[1],meas_pos[2],meas_pos[0],measSizeX,measSizeY,measSizeZ};
-        
-    json jmeas = json::object({{"type","Box"} , {"pos",jloc}});
+    auto jloc = hitline(rmeas);    
+    json jmeas = json::object({{"type","Line"} , {"pos",jloc} , {"color","0x7fff00"}});
     jmeasurements_recoil += jmeas;
   }
-
-
+  
+  
   // ECAL HITS
   
   for (auto ehit : ecalHits) {
@@ -243,11 +243,49 @@ void PhoenixEventDumper::produce(framework::Event & event) {
   if (recoilTracks.size() > 0)
     evtjson_["LDMX_Event"]["Tracks"]["RecoilTracks"]  = jtracks_recoil;
   
-  std::ofstream file("test.json");
+  std::ofstream file(outfilename_);
   file<<std::setw(4) << evtjson_ << '\n';
   
 } //produce
 
+
+std::vector<double> PhoenixEventDumper::hitline(const ldmx::Measurement& meas) {
+  
+  // Load the acts Surface
+  const Acts::Surface* meas_surface = tg.getSurface(meas.getLayerID());
+  
+  // Get the surface boundaries
+  std::vector<double> bounds = meas_surface->bounds().values();
+    
+  double vmin = bounds[1];
+  double vmax = bounds[3];
+  
+  // Position in local frame
+  
+  double local_u = meas.getLocalPosition()[0];
+  
+  // Location on the lower edge in local coordinates
+  Acts::Vector2 lpos_0(local_u, vmin);   
+  
+  // Location on the upper edge in local coordinates
+  Acts::Vector2 lpos_1(local_u, vmax);
+  
+  // Dummy momentum, not used
+  Acts::Vector3 dummy(0.,0.,0.);
+  
+  // Global position of lower edge. Dummy is not used
+  auto glob_0 = meas_surface->localToGlobal(geometry_context(),
+                                            lpos_0,
+                                            dummy);
+
+  auto glob_1 = meas_surface->localToGlobal(geometry_context(),
+                                            lpos_1,
+                                            dummy);
+  
+  std::vector<double> jloc{glob_0(1), glob_0(2), glob_0(0), glob_1(1), glob_1(2), glob_1(0)};  // -- LINE
+  
+  return jloc;
+}
 
 json PhoenixEventDumper::prepareTrack(framework::Event& event,
                                       const ldmx::Track& track,

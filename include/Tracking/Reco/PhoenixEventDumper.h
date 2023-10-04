@@ -61,9 +61,26 @@ namespace tracking {
        * calculation objects.
        */
       void onNewRun(const ldmx::RunHeader& rh) override;
-      
+
       void produce(framework::Event &event) final override;
 
+
+      /**
+       * Converts an ldmx::Measurement into a line
+       * @param meas : the measurement
+       * @return 6D vector describing the line in 3D space
+       */
+      
+      std::vector<double> hitline(const ldmx::Measurement& meas);
+
+
+      /** Converts a track into a serie of 3D points to be drawn
+       * @param event : the current event information
+       * @param track : the track to transform
+       * @param measurements : the hits on track
+       * @param tg : The tracking geometry to perform the propagation
+       * @return json object containing the list of points to be interpolated by phoenix
+       */
       
       json prepareTrack(framework::Event& event,
                         const ldmx::Track& track,
@@ -72,40 +89,53 @@ namespace tracking {
       
    private:
 
-      std::string outfilename_;
+      /** Output file name */
+      std::string outfilename_{"test.json"};
 
-      std::string TaggerTracks_{}; 
+      /** Tagger Tracks collection name */
+      std::string TaggerTracks_{};
+      
+      /** Recoil Tracks collection name */
       std::string RecoilTracks_{};
 
+      /** Tagger Tracker Measurements */
       std::string TaggerMeasurements_{};
+
+      /** Recoil Tracker Measurements */
       std::string RecoilMeasurements_{};
 
+      /** ECAL Hits Collection name */
       std::string EcalHits_{};
+
+      /** HCAL Hits Collection name */
       std::string HcalHits_{};
+
+      //TODO:: Change the following event finding stuff...
       
+      /** The number of the events to dump */
       int eventnr_{0};
+
+      /** Counter to find the event to be dumped */
       int nevents_{0};
 
-
+      
       //--- Track propagation Writer ---//
       std::unique_ptr<tracking::sim::PropagatorStepWriter> prop_writer_;
       
-
-      //--- Extrapolator ---//
+      //--- Propagator ---//
       using CkfPropagator = Acts::Propagator<Acts::EigenStepper<>, Acts::Navigator>;
-
       std::unique_ptr<CkfPropagator> propagator_;
-      
+
+      //--- Extrapolator --- Not used for the moment//
       std::shared_ptr<tracking::reco::TrackExtrapolatorTool<CkfPropagator>> trk_extrap_ ;
       
       //--- BField ---//
       std::string field_map_{""};
       
-      //--- Event Display ---//
-      
+      //--- Event Display Output file---//
       json evtjson_;
       
     };
-    
+  
   }
 }
