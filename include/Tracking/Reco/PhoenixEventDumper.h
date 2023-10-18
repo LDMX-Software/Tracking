@@ -71,7 +71,8 @@ namespace tracking {
        * @return 6D vector describing the line in 3D space
        */
       
-      std::vector<double> hitline(const ldmx::Measurement& meas);
+      std::vector<double> hitline(const ldmx::Measurement& meas,
+                                  const geo::TrackersTrackingGeometry& tg);
 
 
       /** Converts a track into a serie of 3D points to be drawn

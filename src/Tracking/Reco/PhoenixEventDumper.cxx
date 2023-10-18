@@ -155,7 +155,7 @@ void PhoenixEventDumper::produce(framework::Event & event) {
 
   for (auto rmeas : rms) {
 
-    auto jloc = hitline(rmeas);    
+    auto jloc = hitline(rmeas,tg);    
     json jmeas = json::object({{"type","Line"} , {"pos",jloc} , {"color","0x7fff00"}});
     jmeasurements_recoil += jmeas;
   }
@@ -249,7 +249,8 @@ void PhoenixEventDumper::produce(framework::Event & event) {
 } //produce
 
 
-std::vector<double> PhoenixEventDumper::hitline(const ldmx::Measurement& meas) {
+std::vector<double> PhoenixEventDumper::hitline(const ldmx::Measurement& meas,
+                                                const geo::TrackersTrackingGeometry& tg) {
   
   // Load the acts Surface
   const Acts::Surface* meas_surface = tg.getSurface(meas.getLayerID());
