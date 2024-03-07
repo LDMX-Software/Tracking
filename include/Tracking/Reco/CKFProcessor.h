@@ -177,6 +177,11 @@ class CKFProcessor final : public TrackingGeometryUser {
   //Use constant bfield
   bool const_b_field_{true};
 
+  //bfield vector rotation
+  Acts::RotationMatrix3 bfield_rotation;
+  //bfield position rotation
+  Acts::RotationMatrix3 position_rotation;
+  
   //Remove stereo measurements
   bool remove_stereo_{false};
 
@@ -235,11 +240,14 @@ class CKFProcessor final : public TrackingGeometryUser {
 
   // BField Systematics
   std::vector<double> map_offset_{0.,0.,0.,};
-  
   // Keep track on which system this processor is running on
   bool taggerTracking_{true};
   
   
+  std::vector<double> map_angles_{0.,0.,0.,};
+  double bfield_scale_{1.0};
+  std::vector<double> bfield_angles_{0.,0.,0.,};
+
 }; // CKFProcessor
     
 

@@ -35,11 +35,57 @@ void CKFProcessor::onNewRun(const ldmx::RunHeader& rh) {
 
   // Setup a constant magnetic field
   const auto constBField = std::make_shared<Acts::ConstantBField>(b_field);
+
+   //build bfield position rotation matrix from Euler anglesSR
+  if(debug_){
+    std::cout<<"======    B-Field Position Rotation for "<<this->getName()<<std::endl;
+    std::cout<<"z-axis angle = "<<this->map_angles_[0]
+	     <<"   y-axis angle = "<<this->map_angles_[1]
+	     <<"   x-axis angle = "<<this->map_angles_[2]<<std::endl;
+  }
+  this->position_rotation=
+    Acts::RotationMatrix3(Acts::AngleAxis3(this->map_angles_[0], Acts::Vector3::UnitZ()) *
+			    Acts::AngleAxis3(this->map_angles_[1], Acts::Vector3::UnitY()) *
+			    Acts::AngleAxis3(this->map_angles_[2], Acts::Vector3::UnitX()));
+  if(debug_){
+    std::cout<<"Z-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->map_angles_[0], Acts::Vector3::UnitZ()))<<std::endl;
+    std::cout<<"Y-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->map_angles_[1], Acts::Vector3::UnitY()))<<std::endl;
+    std::cout<<"X-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->map_angles_[2], Acts::Vector3::UnitX()))<<std::endl;
+    std::cout<<"Total Rotation Matrix"<<std::endl;
+    std::cout<<this->position_rotation<<std::endl;
+  }
+
+  
+   //build bfield vector rotation matrix from Euler anglesSR
+  if(debug_){
+    std::cout<<"======    B-Field Vector Rotation for "<<this->getName()<<std::endl;
+    std::cout<<"z-axis angle = "<<this->bfield_angles_[0]
+	     <<"   y-axis angle = "<<this->bfield_angles_[1]
+	     <<"   x-axis angle = "<<this->bfield_angles_[2]<<std::endl;
+  }
+  this->bfield_rotation=
+    Acts::RotationMatrix3(Acts::AngleAxis3(this->bfield_angles_[0], Acts::Vector3::UnitZ()) *
+			    Acts::AngleAxis3(this->bfield_angles_[1], Acts::Vector3::UnitY()) *
+			    Acts::AngleAxis3(this->bfield_angles_[2], Acts::Vector3::UnitX()));
+  if(debug_){
+    std::cout<<"Z-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->bfield_angles_[0], Acts::Vector3::UnitZ()))<<std::endl;
+    std::cout<<"Y-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->bfield_angles_[1], Acts::Vector3::UnitY()))<<std::endl;
+    std::cout<<"X-Rotation Matrix"<<std::endl;
+    std::cout<<Acts::RotationMatrix3(Acts::AngleAxis3(this->bfield_angles_[2], Acts::Vector3::UnitX()))<<std::endl;
+    std::cout<<"Total Rotation Matrix"<<std::endl;
+    std::cout<<this->bfield_rotation<<std::endl;
+  }
+
   
   // Custom transformation of the interpolated bfield map
   bool debugTransform = false;
   auto transformPos = [this,debugTransform](const Acts::Vector3& pos) {
-    
+    //include offsets before rotation
     Acts::Vector3 rot_pos;
     rot_pos(0)=pos(1);
     rot_pos(1)=pos(2);
@@ -51,23 +97,22 @@ void CKFProcessor::onNewRun(const ldmx::RunHeader& rh) {
     rot_pos(2) += this->map_offset_[2];
     
     //Apply A rotation around the center of the magnet. (I guess offset first and then rotation)
-
+    rot_pos=this->position_rotation * rot_pos;
+    
     if (debugTransform) {
       std::cout<<"PF::DEFAULT3 TRANSFORM"<<std::endl;
       std::cout<<"PF::Check:: transforming Pos"<<std::endl;
       std::cout<<pos<<std::endl;
       std::cout<<"TO"<<std::endl;
       std::cout<<rot_pos<<std::endl;
+      std::cout<<"OFFSET = "<<this->map_offset_[2]<<std::endl;
     }
     
     return rot_pos;
   };
-
-
-  Acts::RotationMatrix3 rotation = Acts::RotationMatrix3::Identity();
-  double scale = 1.;
+ 
   
-  auto transformBField = [rotation, scale, debugTransform](const Acts::Vector3& field,
+  auto transformBField = [this, debugTransform](const Acts::Vector3& field,
                                            const Acts::Vector3& /*pos*/) {
     
     //Rotate the field in tracking coordinates
@@ -75,20 +120,23 @@ void CKFProcessor::onNewRun(const ldmx::RunHeader& rh) {
     rot_field(0) = field(2);
     rot_field(1) = field(0);
     rot_field(2) = field(1);
-        
+
     //Scale the field
-    rot_field = scale * rot_field;
+    rot_field = this->bfield_scale_ * rot_field;
 
     //Rotate the field
-    rot_field = rotation * rot_field;
+    rot_field = this->bfield_rotation * rot_field;
 
     //A distortion scaled by position.
     if (debugTransform) {
+      std::cout<<"Class = "<<this->getName()<<std::endl;
       std::cout<<"PF::DEFAULT3 TRANSFORM"<<std::endl;
       std::cout<<"PF::Check:: transforming"<<std::endl;
       std::cout<<field<<std::endl;
       std::cout<<"TO"<<std::endl;
       std::cout<<rot_field<<std::endl;
+      std::cout<<"ROTATION"<<std::endl;
+      std::cout<<this->bfield_rotation<<std::endl;
     }
     
     return rot_field;
@@ -101,7 +149,6 @@ void CKFProcessor::onNewRun(const ldmx::RunHeader& rh) {
                         //default_transformBField));
                         transformPos,
                         transformBField));
-
 
   auto acts_loggingLevel = Acts::Logging::FATAL;
   if (debug_)
@@ -657,8 +704,12 @@ void CKFProcessor::onProcessEnd() {
 void CKFProcessor::configure(framework::config::Parameters& parameters) {
   dumpobj_ = parameters.getParameter<bool>("dumpobj", 0);
   pionstates_ = parameters.getParameter<int>("pionstates", 0);
-  
 
+  debug_=parameters.getParameter<bool>("debug",false);
+  //TODO Remove from default
+  steps_outfile_path_ = parameters.getParameter<std::string>(
+      "steps_file_path", "propagation_steps.root");
+  
   track_id_ = parameters.getParameter<int>("track_id", -1);
   pdg_id_ = parameters.getParameter<int>("pdg_id", 11);
 
@@ -696,12 +747,19 @@ void CKFProcessor::configure(framework::config::Parameters& parameters) {
   out_trk_collection_ =
       parameters.getParameter<std::string>("out_trk_collection", "Tracks");
   
-  
   // keep track on which system tracking is running
   taggerTracking_ = parameters.getParameter<bool>("taggerTracking",true);
-  
+
+  kf_refit_ = parameters.getParameter<bool>("kf_refit", false);
+  gsf_refit_ = parameters.getParameter<bool>("gsf_refit", false);
+
   //BField Systematics
   map_offset_ = parameters.getParameter<std::vector<double>>("map_offset_",{0.,0.,0.});
+  map_angles_ = parameters.getParameter<std::vector<double>>("map_angles_",{0.,0.,0.});
+  bfield_scale_ = parameters.getParameter<double>("bfield_scale_", 1.0);
+  bfield_angles_ = parameters.getParameter<std::vector<double>>("bfield_angles_",{0.,0.,0.});
+
+ 
 }
 
 auto CKFProcessor::makeGeoIdSourceLinkMap(

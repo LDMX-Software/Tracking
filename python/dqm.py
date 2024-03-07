@@ -41,6 +41,7 @@ class TrackingRecoDQM(ldmxcfg.Analyzer):
         thetamax = 1.7
         qopmin   = -10
         qopmax   = 10
+
         pmax  =  8.
         self.doTruth= True
 
@@ -70,7 +71,6 @@ class TrackingRecoDQM(ldmxcfg.Analyzer):
                               "pT bending plane [GeV]",nbins,-pmax,pmax)
         self.build1DHistogram("pt_beam",
                               "pT beam axis [GeV]",nbins,0,0.5)
-        
         self.build1DHistogram("nHits",
                               "nHits",15,0,15)
         self.build1DHistogram("Chi2",
@@ -84,11 +84,11 @@ class TrackingRecoDQM(ldmxcfg.Analyzer):
         self.build1DHistogram("nHoles",
                               "nHoles",5,0,5)
         self.build1DHistogram("px",
-                              "pX [GeV]",nbins,-pmax,pmax)
+                              "pX [GeV]",nbins,0,pmax)
         self.build1DHistogram("py",
-                              "pY [GeV]",nbins,-pmax,pmax)
+                              "pY [GeV]",nbins,-pmax/100,pmax/100)
         self.build1DHistogram("pz",
-                              "pZ [GeV]",nbins,-pmax,pmax)
+                              "pZ [GeV]",nbins,-pmax/100,pmax/100)
         self.build1DHistogram("d0_err",
                               "#sigma_{d0} [mm]",nbins,0,0.2)
         self.build1DHistogram("z0_err",
@@ -243,7 +243,7 @@ class TrackingRecoDQM(ldmxcfg.Analyzer):
 
             self.build1DHistogram("res_pt_beam",
                                   "res pt beam [GeV]", nbins, -1,1)
-            
+
             self.build1DHistogram("res_qop",
                                   "res q/p [GeV^{-1}]",nbins,-1,1)
             
